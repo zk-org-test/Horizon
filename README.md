@@ -57,7 +57,7 @@ Horizon collects news from multiple customizable sources, uses AI to score and f
 - **💬 Community Voices** — Collects and summarizes discussions from comments on HackerNews, Reddit, etc.
 - **🔗 Cross-Source Deduplication** — Merges duplicate items from different platforms automatically
 - **📧 Email Subscription** — Self-hosted newsletter system (SMTP/IMAP) that handles "Subscribe" requests automatically
-- **�📰 Static Site Generation** — Deploys as a GitHub Pages site via GitHub Actions, updated on a schedule
+- **📝 Static Site Generation** — Deploys as a GitHub Pages site via GitHub Actions, updated on a schedule
 - **⚙️ Fully Configurable** — Single JSON config file, easy to customize sources, thresholds, and AI providers
 
 ## How It Works
