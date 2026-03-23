@@ -55,6 +55,8 @@ hr {
 
 h1, h2, h3, h4, h5, h6 {
   color: var(--hz-text) !important;
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif !important;
+  font-weight: 800 !important;
 }
 
 /* Override Cayman header gradient — Horizon sunrise from SVG */
