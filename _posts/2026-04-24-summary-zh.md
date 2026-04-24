@@ -333,7 +333,7 @@ telegram · zaihuapd · Apr 23, 05:21
 ---
 
 <a id="item-15"></a>
-## [字节跳动发布 Seed3D 2.0，3D 生成迈向生产可用](https://paipancon.com/fc2daily/detail/FC2-PPV-1700423) ⭐️ 8.0/10
+## [字节跳动发布 Seed3D 2.0，3D 生成迈向生产可用](https://seed.bytedance.com/zh/blog/seed3d-2-0-released-higher-precision-and-greater-usability) ⭐️ 8.0/10
 
 字节跳动于 2026 年 4 月 23 日发布了新一代 3D 生成大模型 Seed3D 2.0，在几何精度和纹理质量上取得行业领先（SOTA）水平，人类评测中相对主流模型的偏好率超过 69%。 这标志着 3D 生成从演示级向生产可用迈出关键一步，有望加速 AI 生成的 3D 内容在游戏、机器人和仿真等行业的应用。 Seed3D 2.0 还支持部件级生成和场景组合，输出带完整关节信息、兼容 URDF 等标准格式的内容，并可适配 NVIDIA Isaac Sim 等物理仿真引擎。
 
