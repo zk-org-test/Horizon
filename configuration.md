@@ -18,7 +18,8 @@ Configure which AI model scores and summarizes your content.
   "ai": {
     "provider": "anthropic",
     "model": "claude-sonnet-4.5-20250929",
-    "api_key_env": "ANTHROPIC_API_KEY"
+    "api_key_env": "ANTHROPIC_API_KEY",
+    "throttle_sec": 0
   }
 }
 ```
@@ -30,7 +31,8 @@ Configure which AI model scores and summarizes your content.
   "ai": {
     "provider": "openai",
     "model": "gpt-4",
-    "api_key_env": "OPENAI_API_KEY"
+    "api_key_env": "OPENAI_API_KEY",
+    "throttle_sec": 0
   }
 }
 ```
@@ -42,7 +44,8 @@ Configure which AI model scores and summarizes your content.
   "ai": {
     "provider": "minimax",
     "model": "MiniMax-M2.7",
-    "api_key_env": "MINIMAX_API_KEY"
+    "api_key_env": "MINIMAX_API_KEY",
+    "throttle_sec": 0
   }
 }
 ```
@@ -56,12 +59,29 @@ Available models: `MiniMax-M2.7`, `MiniMax-M2.7-highspeed`, `MiniMax-M2.5`, `Min
   "ai": {
     "provider": "ali",
     "model": "qwen-plus",
-    "api_key_env": "DASHSCOPE_API_KEY"
+    "api_key_env": "DASHSCOPE_API_KEY",
+    "throttle_sec": 0
   }
 }
 ```
 
 Use the [DashScope compatible-mode](https://help.aliyun.com/zh/dashscope/developer-reference/use-dashscope-by-calling-openai-api) endpoint. Set `DASHSCOPE_API_KEY` in your `.env`. Optional: set `base_url` to override the default `https://dashscope.aliyuncs.com/compatible-mode/v1`.
+
+### AI throttling
+
+If your model has a strict per-minute request cap, you can slow the scorer down in `data/config.json`:
+
+```json
+{
+  "ai": {
+    "throttle_sec": 4.5
+  }
+}
+```
+
+- `throttle_sec`: Pause between scored items in seconds. Default is `0`.
+- `4.5` is a reasonable starting point for free-tier models capped around 15 requests per minute.
+- Set it back to `0` if you have enough throughput headroom and want maximum speed.
 
 **Custom Base URL** (for proxies):
 
