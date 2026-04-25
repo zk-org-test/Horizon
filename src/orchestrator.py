@@ -10,7 +10,7 @@ from rich.console import Console
 
 from .models import Config, ContentItem
 from .storage.manager import StorageManager
-from .services.emailer import EmailManager
+from .services.email import EmailManager
 from .services.webhook import WebhookNotifier
 from .scrapers.github import GitHubScraper
 from .scrapers.hackernews import HackerNewsScraper

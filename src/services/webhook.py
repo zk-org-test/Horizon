@@ -6,7 +6,7 @@ import logging
 import os
 import re
 from datetime import datetime, timezone
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 import httpx
 
 from ..models import ContentItem, WebhookConfig
@@ -218,6 +218,110 @@ class WebhookNotifier:
         else:
             self.console = console
 
+    def _render_request_components(self, variables: dict) -> tuple[str, str | None, dict[str, str]]:
+        """Render the final request URL, body, and headers for the given variables."""
+        request_url = _render(self.url or "", variables)
+
+        content_type = "application/x-www-form-urlencoded"
+        body_content = None
+        raw_body = self.config.request_body
+        body_variables = _prepare_variables_for_body(raw_body, variables)
+
+        if raw_body:
+            if isinstance(raw_body, (dict, list)):
+                rendered_obj = _render(raw_body, body_variables)
+                body_content = json.dumps(rendered_obj, ensure_ascii=False)
+                content_type = "application/json"
+            elif isinstance(raw_body, str) and raw_body.strip():
+                rendered = _render(raw_body, body_variables)
+                body_content = rendered
+                if _isjson(rendered):
+                    try:
+                        json.loads(rendered)
+                        content_type = "application/json"
+                    except json.JSONDecodeError:
+                        pass
+
+        headers = _extract_headers(self.config.headers)
+        headers["Content-Type"] = content_type
+        return request_url, body_content, headers
+
+    def build_preview(self, variables: dict) -> dict[str, Any]:
+        """Build the fully rendered request for dry-run preview."""
+        request_url, body_content, headers = self._render_request_components(variables)
+        return {
+            "url": request_url,
+            "body": body_content,
+            "headers": headers,
+        }
+
+    def build_daily_summary_messages(
+        self,
+        summary: str,
+        important_items: List[ContentItem],
+        all_items_count: int,
+        date: str,
+        lang: str,
+        summarizer: DailySummarizer,
+    ) -> List[dict[str, Any]]:
+        """Build the variables for all webhook messages for one language."""
+        webhook_languages = getattr(self.config, "languages", None)
+        if webhook_languages and lang not in webhook_languages:
+            return []
+
+        base_vars = {
+            "date": date,
+            "language": lang,
+            "important_items": len(important_items),
+            "all_items": all_items_count,
+            "result": "success",
+            "timestamp": str(int(datetime.now(timezone.utc).timestamp())),
+        }
+
+        delivery = getattr(self.config, "delivery", "summary")
+        if delivery == "summary_and_items":
+            messages: List[dict[str, Any]] = []
+            overview = summarizer.generate_webhook_overview(
+                important_items, date, all_items_count, language=lang,
+            )
+            messages.append({
+                **base_vars,
+                "message_title": (
+                    f"Horizon {date} 总览" if lang == "zh"
+                    else f"Horizon {date} Overview"
+                ),
+                "message_kind": "overview",
+                "summary": overview,
+            })
+            for item_index, item in enumerate(important_items, start=1):
+                title = str(item.metadata.get(f"title_{lang}") or item.title)
+                item_summary = summarizer.generate_webhook_item(
+                    item, language=lang, index=item_index,
+                    total=len(important_items),
+                )
+                messages.append({
+                    **base_vars,
+                    "message_title": f"{item_index}/{len(important_items)} {title}",
+                    "message_kind": "item",
+                    "item_index": item_index,
+                    "item_count": len(important_items),
+                    "item_title": title,
+                    "item_url": str(item.url),
+                    "item_score": item.ai_score or "",
+                    "summary": item_summary,
+                })
+            return messages
+
+        return [{
+            **base_vars,
+            "message_title": (
+                f"Horizon {date} 日报" if lang == "zh"
+                else f"Horizon {date} Daily"
+            ),
+            "message_kind": "summary",
+            "summary": summary,
+        }]
+
     async def notify(self, variables: dict) -> None:
         """Send a webhook notification with template variable substitution.
 
@@ -236,41 +340,12 @@ class WebhookNotifier:
             logger.warning("Webhook enabled but URL is empty (env var %s not set), skipping notification.", self.config.url_env)
             return
 
-        # Replace template variables in URL
-        request_url = _render(self.url, variables)
-
-        # Determine method and content
         method = "GET"
-        content_type = "application/x-www-form-urlencoded"
-        body_content = None
-
         raw_body = self.config.request_body
-        body_variables = _prepare_variables_for_body(raw_body, variables)
-
+        request_url, body_content, headers = self._render_request_components(variables)
         if raw_body:
             method = "POST"
-
-            if isinstance(raw_body, (dict, list)):
-                # Real JSON object/list: replace at value level, then serialize
-                rendered_obj = _render(raw_body, body_variables)
-                body_content = json.dumps(rendered_obj, ensure_ascii=False)
-                content_type = "application/json"
-                logger.debug("Webhook POST body (dict/list, %d chars): %s", len(body_content), body_content[:2000])
-            elif isinstance(raw_body, str) and raw_body.strip():
-                rendered = _render(raw_body, body_variables)
-                body_content = rendered
-                logger.debug("Webhook POST body (str, %d chars): %s", len(body_content), body_content[:2000])
-                # Detect content type from the rendered string
-                if _isjson(rendered):
-                    try:
-                        json.loads(rendered)
-                        content_type = "application/json"
-                    except json.JSONDecodeError:
-                        pass  # keep form type
-
-        # Build headers
-        headers = _extract_headers(self.config.headers)
-        headers["Content-Type"] = content_type
+            logger.debug("Webhook POST body (%d chars): %s", len(body_content or ""), (body_content or "")[:2000])
 
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
@@ -327,9 +402,15 @@ class WebhookNotifier:
             lang: Language code ("en" or "zh")
             summarizer: DailySummarizer instance for generating webhook overviews
         """
-        # Language filter
-        webhook_languages = getattr(self.config, "languages", None)
-        if webhook_languages and lang not in webhook_languages:
+        messages = self.build_daily_summary_messages(
+            summary=summary,
+            important_items=important_items,
+            all_items_count=all_items_count,
+            date=date,
+            lang=lang,
+            summarizer=summarizer,
+        )
+        if not messages:
             self.console.print(
                 f"🔕 Skipping {lang.upper()} webhook notification "
                 f"(filtered by webhook.languages)"
@@ -337,58 +418,8 @@ class WebhookNotifier:
             return
 
         self.console.print(f"🔔 Sending {lang.upper()} webhook notification...")
-
-        base_vars = {
-            "date": date,
-            "language": lang,
-            "important_items": len(important_items),
-            "all_items": all_items_count,
-            "result": "success",
-            "timestamp": str(int(datetime.now(timezone.utc).timestamp())),
-        }
-
-        delivery = getattr(self.config, "delivery", "summary")
-
-        if delivery == "summary_and_items":
-            overview = summarizer.generate_webhook_overview(
-                important_items, date, all_items_count, language=lang,
-            )
-            await self.notify({
-                **base_vars,
-                "message_title": (
-                    f"Horizon {date} 总览" if lang == "zh"
-                    else f"Horizon {date} Overview"
-                ),
-                "message_kind": "overview",
-                "summary": overview,
-            })
-            for item_index, item in enumerate(important_items, start=1):
-                title = str(item.metadata.get(f"title_{lang}") or item.title)
-                item_summary = summarizer.generate_webhook_item(
-                    item, language=lang, index=item_index,
-                    total=len(important_items),
-                )
-                await self.notify({
-                    **base_vars,
-                    "message_title": f"{item_index}/{len(important_items)} {title}",
-                    "message_kind": "item",
-                    "item_index": item_index,
-                    "item_count": len(important_items),
-                    "item_title": title,
-                    "item_url": str(item.url),
-                    "item_score": item.ai_score or "",
-                    "summary": item_summary,
-                })
-        else:
-            await self.notify({
-                **base_vars,
-                "message_title": (
-                    f"Horizon {date} 日报" if lang == "zh"
-                    else f"Horizon {date} Daily"
-                ),
-                "message_kind": "summary",
-                "summary": summary,
-            })
+        for message in messages:
+            await self.notify(message)
 
     async def send_failure(
         self,

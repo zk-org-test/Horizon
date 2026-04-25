@@ -1,12 +1,12 @@
 """Email service for handling subscriptions and sending summaries."""
 
-import imaplib
-import smtplib
 import email
-import os
+import imaplib
 import logging
-from email.mime.text import MIMEText
+import os
+import smtplib
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from email.utils import parseaddr
 from typing import List
 
@@ -44,22 +44,17 @@ class EmailManager:
             )
             self.console.print(f"[yellow]Warning: Environment variable {self.config.password_env} not set. Email features may fail.[/yellow]")
 
-
     def check_subscriptions(self, storage_manager):
         """Checks inbox for subscription requests and updates subscriber list."""
         if not self.config.enabled:
             return
 
         try:
-            # Connect to IMAP
             mail = imaplib.IMAP4_SSL(self.config.imap_server, self.config.imap_port)
             mail.login(self.config.email_address, self.pwd)
             mail.select("INBOX")
 
-            # 1. Process Subscriptions
             keyword = self.config.subscribe_keyword
-            # We search ALL messages with SUBSCRIBE because sometimes clients
-            # (like your phone/web) mark incoming emails as read before the script catches them.
             search_crit = f'(UNSEEN SUBJECT "{keyword}")'
 
             status, messages = mail.search(None, search_crit)
@@ -69,7 +64,6 @@ class EmailManager:
                 subscribers = storage_manager.load_subscribers()
 
                 for e_id in email_ids:
-                    # Fetch the email
                     _, msg_data = mail.fetch(e_id, "(RFC822)")
                     for response_part in msg_data:
                         if isinstance(response_part, tuple):
@@ -89,7 +83,6 @@ class EmailManager:
 
                                     if email_addr not in subscribers:
                                         storage_manager.add_subscriber(email_addr)
-                                        # Reload list to keep it fresh
                                         subscribers = storage_manager.load_subscribers()
                                         self._send_reply(
                                             email_addr,
@@ -100,7 +93,6 @@ class EmailManager:
                                     else:
                                         logger.info(f"Already subscribed: {email_addr}")
 
-            # 2. Process Unsubscriptions
             unsub_keyword = self.config.unsubscribe_keyword
             search_crit_unsub = f'(UNSEEN SUBJECT "{unsub_keyword}")'
 
@@ -159,7 +151,6 @@ class EmailManager:
             else f"<pre>{summary_md}</pre>"
         )
 
-        # Simple HTML wrapper for better presentation
         html_body = f"""
         <!DOCTYPE html>
         <html>
@@ -196,7 +187,6 @@ class EmailManager:
                     msg["From"] = f"{self.config.sender_name} <{self.config.email_address}>"
                     msg["To"] = subscriber
 
-                    # Create plain text and HTML versions
                     text_part = MIMEText(summary_md, "plain")
                     html_part = MIMEText(html_body, "html")
 

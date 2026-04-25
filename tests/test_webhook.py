@@ -243,6 +243,33 @@ class TestWebhookMarkdownFormatting:
         assert result["summary"] == summary
 
 
+class TestWebhookPreview:
+    def test_build_preview_uses_same_summary_formatting_as_send_path(self):
+        os.environ[_TEST_URL_ENV] = _TEST_URL
+        config = WebhookConfig(
+            enabled=True,
+            url_env=_TEST_URL_ENV,
+            request_body={
+                "msg_type": "interactive",
+                "card": {
+                    "body": {
+                        "elements": [{"tag": "markdown", "content": "#{summary}"}]
+                    },
+                },
+            },
+        )
+        notifier = WebhookNotifier(config)
+
+        preview = notifier.build_preview({
+            "summary": "<details><summary>References</summary><ul><li><a href=\"https://example.com\">Example</a></li></ul></details>",
+        })
+
+        assert preview["url"] == _TEST_URL
+        assert "**References**" in preview["body"]
+        assert "<details>" not in preview["body"]
+        del os.environ[_TEST_URL_ENV]
+
+
 # ── JSON prefix detection ──
 
 
