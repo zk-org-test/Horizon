@@ -5,109 +5,181 @@ date: 2026-05-10
 lang: zh
 ---
 
-> From 12 items, 4 important content pieces were selected
+> From 27 items, 7 important content pieces were selected
 
 ---
 
-1. [Bun 实验性 Rust 重写称 Linux x64 glibc 测试兼容率达 99.8%](#item-1) ⭐️ 8.0/10
-2. [FreeBSD execve() 漏洞可导致本地提权](#item-2) ⭐️ 8.0/10
-3. [Let-go：用 Go 实现的类 Clojure 运行时，冷启动约 7ms](#item-3) ⭐️ 8.0/10
-4. [法国考虑可能削弱端到端加密消息的措施](#item-4) ⭐️ 8.0/10
+1. [Bun 实验性 Rust 重写在 Linux glibc 上达成 99.8% 测试通过率](#item-1) ⭐️ 8.0/10
+2. [Internet Archive Switzerland 加入分布式数字保存网络](#item-2) ⭐️ 8.0/10
+3. [Debian 推进强制软件包可复现构建](#item-3) ⭐️ 8.0/10
+4. [FreeBSD execve() 漏洞可导致本地提权](#item-4) ⭐️ 8.0/10
+5. [Let-go：用 Go 实现的类 Clojure 语言，冷启动约 7 毫秒](#item-5) ⭐️ 8.0/10
+6. [cPanel 在约 4.4 万台服务器遭勒索后修补三处漏洞](#item-6) ⭐️ 8.0/10
+7. [Chrome DevTools MCP 让 AI 代理控制实时浏览器](#item-7) ⭐️ 8.0/10
 
 ---
 
 <a id="item-1"></a>
-## [Bun 实验性 Rust 重写称 Linux x64 glibc 测试兼容率达 99.8%](https://twitter.com/jarredsumner/status/2053047748191232310) ⭐️ 8.0/10
+## [Bun 实验性 Rust 重写在 Linux glibc 上达成 99.8% 测试通过率](https://twitter.com/jarredsumner/status/2053047748191232310) ⭐️ 8.0/10
 
-Bun 团队称其实验性的 Zig→Rust 重写在 Linux x64 glibc 上已达到约 99.8% 的测试套件兼容率。该进展引发大量讨论，焦点包括该移植是否会真正落地、AI 辅助翻译在其中的作用，以及对长期稳定性与性能的影响。 Bun 作为备受关注的 JavaScript 运行时，如果接近完成的 Rust 移植最终进入主线，可能会改变其可靠性表现以及社区贡献者生态。与此同时，这也展示了在 LLM 辅助下大型系统重写的速度上限，可能让“算力与产出”更直接地影响竞争格局。 所称 99.8% 的数据限定在 Linux x64 且使用 glibc 的构建环境下，因此并不必然代表其它平台或不同 libc 环境的结果。Bun 开发者也提醒该分支仍属实验性质，未必已形成可用的完整版本，并且存在很大概率会被整体放弃而不是合并。
+Bun 团队称一项实验性的 Rust 重写在 Linux x64 glibc 环境下达到了 99.8% 的测试套件兼容性。该进展引发了讨论：基于 Rust 的实现（可能借助 LLM 辅助移植）是否会替代或补充当前基于 Zig 的实现。 Bun 作为一体化的 JavaScript 运行时与工具链，如果在新语言实现上接近完整的测试兼容性，可能会显著影响大量用户关心的稳定性、性能与长期可维护性。它也体现出更广泛的趋势：团队可能用 LLM 辅助翻译来加速大规模系统重写，从而改变运行时基础设施竞争的成本与节奏。 所称的 99.8% 指标限定在 Linux x64 glibc 平台上；glibc 是主流 Linux 发行版最常用的 libc，也是常见的兼容性目标。一名 Bun 开发者强调这只是实验分支，并不代表已决定重写；即便当前兼容性数字亮眼，这些代码仍可能被整体丢弃。
 
 hackernews · heldrida · May 9, 10:12 · [社区讨论](https://news.ycombinator.com/item?id=48073680)
 
-**背景**: Bun 是一个 JavaScript 运行时，常被视为 Node.js 与 Deno 的替代选择，主打高性能以及更一体化的开发工具链。Deno 通常被认为在架构与默认实践上与 Node.js 有差异，例如依赖管理工作流不同。在 Linux 上，glibc 是标准的 GNU C Library，提供大量面向操作系统的基础例程，因此“Linux x64 glibc”意味着面向多数采用 glibc 的发行版的常见二进制兼容目标。Rust 与 Zig 都用于系统编程，但 Rust 更强调通过更严格的编译器检查在编译期提供内存安全保障，而 Zig 则更强调显式控制与更手动的内存管理方式。
+**背景**: Bun 是一个 JavaScript 运行时，并主打把运行时与常见开发工具整合在一起，例如包管理器、测试运行器和打包器。在 Linux 上，很多原生二进制会依赖特定的 C 标准库实现；glibc 是多数主流发行版的默认选择，而 musl 等替代实现与 glibc 的差异可能影响二进制兼容性。Rust 与 Zig 都是用于构建高性能运行时的系统编程语言，但 Rust 更强调编译期安全保证，Zig 则提供更显式的手动控制方式，从而影响团队如何看待内存问题与可靠性取舍。
 
 <details><summary>参考链接</summary>
 <ul>
-<li><a href="https://betterstack.com/community/guides/scaling-nodejs/nodejs-vs-deno-vs-bun/">Node.js vs Deno vs Bun: Comparing JavaScript Runtimes | Better Stack Community</a></li>
-<li><a href="https://linuxfromscratch.org/lfs/view/stable/chapter05/glibc.html">5.5. Glibc -2.42</a></li>
-<li><a href="https://blog.logrocket.com/comparing-rust-vs-zig-performance-safety-more/">Comparing Rust vs . Zig : Performance, safety , and... - LogRocket Blog</a></li>
+<li><a href="https://bun.com/">Bun — A fast all-in-one JavaScript runtime</a></li>
+<li><a href="https://edu.chainguard.dev/chainguard/chainguard-images/about/images-compiled-programs/glibc-vs-musl/">glibc vs. musl — Chainguard Academy</a></li>
+<li><a href="https://matklad.github.io/2023/03/26/zig-and-rust.html">Zig And Rust</a></li>
 
 </ul>
 </details>
 
-**社区讨论**: 评论区一部分人对重写速度感到震撼，并将其归因于大量 LLM/token 的使用；另一部分人则质疑其可持续性、可维护性以及最终是否会发布。有人认为 Rust 版本可能相对 Zig 减少崩溃与内存问题，但也有人指出如果大量依赖 `unsafe`，收益会被削弱，而且该分支本就未承诺落地、随时可能被丢弃。
+**社区讨论**: 评论者一方面对移植速度（并猜测存在 LLM 辅助）感到兴奋，另一方面也提醒“测试通过”并不等同于真实场景下的可靠性或性能提升。一名 Bun 开发者反对过度解读，称该分支只是实验，情况并非外界想象那样，且很可能会被丢弃。还有人围绕 Rust 是否能相较 Zig 减少崩溃与内存问题展开争论，并提出 LLM 生成代码的法律与所有权风险。
 
-**标签**: `#bun`, `#rust`, `#javascript-runtime`, `#software-porting`, `#llm-assisted-development`
+**标签**: `#bun`, `#rust`, `#javascript-runtime`, `#systems-programming`, `#llm-assisted-development`
 
 ---
 
 <a id="item-2"></a>
-## [FreeBSD execve() 漏洞可导致本地提权](https://www.freebsd.org/security/advisories/FreeBSD-SA-26:13.exec.asc) ⭐️ 8.0/10
+## [Internet Archive Switzerland 加入分布式数字保存网络](https://blog.archive.org/2026/05/06/internet-archive-switzerland-expanding-a-global-mission-to-preserve-knowledge/) ⭐️ 8.0/10
 
-FreeBSD 发布了安全公告 FreeBSD-SA-26:13.exec，警告一个与 execve() 相关的漏洞可导致本地权限提升。与 CVE-2026-7270 相关的第三方文章补充了利用细节和修复/缓解信息。 execve() 是启动程序的核心系统调用，因此这里的缺陷往往触达面很广，可能把普通本地权限直接提升到 root。对运行多用户主机、以及依赖 setuid-root 程序的环境来说，本地提权属于影响极大的安全失效场景。 第三方复现文章指出，FreeBSD 的运行时链接器在处理 LD_PRELOAD 前会检查 issetugid()，如果该检查结果不正确，可能导致不安全的环境变量处理并形成提权链路。社区讨论强调这类问题可能源自非常隐蔽的运算符优先级错误（通过补充括号修复），但其安全影响却极其关键。
+Internet Archive Switzerland 已作为瑞士实体启动，定位为与使命一致的组织，用于加强长期数字知识保存。Internet Archive 的博客称其与 Internet Archive Canada、Internet Archive Europe 一起，构成不断扩大的独立图书馆网络，以建设更具韧性的分布式数字图书馆。 在地理与机构层面进行分布式部署，可以减少单点故障，并在某一司法辖区遭遇宕机、灾害或法律/运营冲击时提升整体存续能力。新增瑞士节点也体现了“司法辖区多样化”的策略，可能影响保存机构在访问、合规与长期连续性方面的安排。 公告将其描述为由“使命一致”且“独立”的图书馆组成的网络，这意味着治理与运营层面的分离与技术复制同等重要。社区讨论还提到网站早期存在模板化文案与访问不稳定等问题，并质疑瑞士实体在实践中与既有地区实体相比究竟有多独立。
 
-hackernews · Deeg9rie9usi · May 9, 20:31 · [社区讨论](https://news.ycombinator.com/item?id=48077971)
+hackernews · hggh · May 9, 12:00 · [社区讨论](https://news.ycombinator.com/item?id=48074265)
 
-**背景**: exec（包括 execve()）会用新程序替换当前进程的程序映像，在保留进程上下文的同时加载并运行新的可执行文件。在类 Unix 系统中，setuid-root 程序和 LD_PRELOAD 这类动态链接机制会被严格限制，因为一旦允许不可信环境变量影响特权程序的加载过程，就可能导致权限提升。FreeBSD 使用 issetugid() 等检查，让运行时链接器在进程具备提升权限时忽略危险的环境设置。
+**背景**: 数字保存通常依赖跨地域复制，以避免某一地点的故障导致唯一副本丢失，这也是分布式数字保存网络的核心思路之一。LOCKSS（“Lots of Copies Keep Stuff Safe”）推广了点对点模式，在该模式下没有任何单一参与者能够控制所有副本，因此常被视为提升韧性与治理独立性的方式。更广义的数字保存实践还强调：即使文件格式、系统环境与法律环境发生变化，也要尽量长期保持记录的真实性与可访问性。
 
 <details><summary>参考链接</summary>
 <ul>
-<li><a href="https://blog.calif.io/p/cve-2026-7270-how-i-get-root-on-freebsd">CVE-2026-7270: How I Get Root on FreeBSD with a Shell Script</a></li>
-<li><a href="https://en.wikipedia.org/wiki/Exec_(system_call)">exec ( system call ) - Wikipedia</a></li>
-<li><a href="https://news.ycombinator.com/item?id=48077971">FreeBSD : Local Privilege Escalation via Execve () | Hacker News</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Digital_preservation">Digital preservation - Wikipedia</a></li>
+<li><a href="https://en.wikipedia.org/wiki/LOCKSS">LOCKSS - Wikipedia</a></li>
+<li><a href="https://www.ifla.org/past-wlic/2012/216-trehub-en.pdf">Safety in numbers: distributed digital preservation networks</a></li>
 
 </ul>
 </details>
 
-**社区讨论**: 评论主要围绕补丁 diff 中通过添加括号修复的运算符优先级错误展开，有人建议在项目中禁止不加括号的混合运算以减少此类安全问题。也有人分享了 Calif.io 的详细复现文章（以及一个 AI 生成的可用 exploit 写作与提示词），并指出该问题在 15.0R-p7 中已修复，另外还有关于“exeCVE”的玩笑式评论。
+**社区讨论**: 评论者讨论了需要多大程度的组织隔离才能抵御集中式下架压力，有人主张采用类似 Usenet 的对等互联：由彼此无关的实体互相复制内容，并且不应存在可传播投诉/下架请求的共享通道。也有人质疑地区组织在现实中是否真正独立（例如共享董事、协作工具与邮箱域名），并指出瑞士站点疑似存在模板/填充文案以及可用性问题。
 
-**标签**: `#FreeBSD`, `#security-advisory`, `#privilege-escalation`, `#execve`, `#CVE`
+**标签**: `#digital-preservation`, `#internet-archive`, `#decentralization`, `#copyright-law`, `#institutional-governance`
 
 ---
 
 <a id="item-3"></a>
-## [Let-go：用 Go 实现的类 Clojure 运行时，冷启动约 7ms](https://github.com/nooga/let-go) ⭐️ 8.0/10
+## [Debian 推进强制软件包可复现构建](https://lists.debian.org/debian-devel-announce/2026/05/msg00001.html) ⭐️ 8.0/10
 
-Let-go 是一个用纯 Go 编写、与 JVM 版 Clojure 约 90%兼容的语言运行时，可发布为约 10MB 的静态二进制，并声称冷启动约 7ms。它提供 nREPL 服务器支持，并主打可嵌入到 Go 程序中，实现跨语言边界的便捷互操作。 对于希望摆脱 JVM 部署的 Clojure 开发者来说，这类快速启动、体积小的二进制运行时更适合 CLI 与服务场景，能显著改善冷启动与分发复杂度。它兼容 nREPL 工具链也意味着即便不跑在 JVM 上，很多既有编辑器工作流仍可延续。 在实现上，let-go 采用手写编译器与栈式 VM，并支持 AOT 模式生成可移植的字节码产物以及独立可执行文件（运行时+字节码）。它并非 JVM Clojure 的直接替代品：不支持加载 JAR，也缺少 Java API，现有项目大概率需要修改才能运行。
+Debian 宣布一项政策方向：软件包必须以可复现方式构建，以便能从对应源码验证已发布的二进制产物。此举意味着从“建议做到”转向对维护者提出更明确的确定性构建要求。 可复现构建能让第三方独立重建并核对二进制是否与已发布源码一致，从而提升 Debian 软件仓库的可信度并降低供应链篡改风险。由于 Debian 是许多发行版与容器镜像的重要上游，这类改进可能会向整个 Linux 生态产生外溢效应。 在 Debian Policy 中，“可复现”有明确界定：在给定路径解包的特定源码包版本进行构建时，应产出一致结果，这与 reproducible-builds.org 所强调的确定性编译概念一致。Debian Wiki 也指出仅使用普通的 sid 环境通常不足以实现可复现构建，这意味着仍需要在工具链、构建参数与环境控制等方面持续完善。
 
-hackernews · marcingas · May 9, 17:52 · [社区讨论](https://news.ycombinator.com/item?id=48076815)
+hackernews · robalni · May 10, 05:26 · [社区讨论](https://news.ycombinator.com/item?id=48081245)
 
-**背景**: 大多数 Clojure 代码运行在 JVM 上，能够深度使用 Java 生态库，但启动开销通常比原生二进制更高。Babashka 是常见的快速启动 Clojure 脚本运行时，其核心基于 SCI（Small Clojure Interpreter）这一可配置解释器，并常与 GraalVM 的原生打包路径相关联。nREPL 是一种基于套接字的“网络 REPL”协议，Clojure 常用编辑器与工具通过其中间件与消息机制，在运行中的进程里进行代码求值与交互。
+**背景**: 可复现构建（确定性编译）指在相同源码、依赖与构建环境下，能够产出逐位一致的二进制，从而支持对发布产物进行独立验证。Debian 长期通过工具与规范消除时间戳、文件系统排序以及环境差异等非确定性来源。Debian Policy 还对源码包的可复现性期望进行了描述，并给出了在 Debian 语境下“可复现”的定义。
 
 <details><summary>参考链接</summary>
 <ul>
-<li><a href="https://nrepl.org/nrepl/index.html">nREPL :: nREPL</a></li>
-<li><a href="https://github.com/babashka/babashka">GitHub - babashka/babashka: Native, fast starting Clojure interpreter for scripting · GitHub</a></li>
-<li><a href="https://github.com/babashka/sci">GitHub - babashka/ sci : Configurable Clojure /Script interpreter ...</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Reproducible_builds">Reproducible builds - Wikipedia</a></li>
+<li><a href="https://wiki.debian.org/ReproducibleBuilds/Howto">ReproducibleBuilds/Howto - Debian Wiki</a></li>
+<li><a href="https://www.chiark.greenend.org.uk/doc/debian-policy/policy.html/ch-source.html">4. Source packages — Debian Policy Manual v4.5.1.0</a></li>
 
 </ul>
 </details>
 
-**社区讨论**: 评论区整体对这种“无 JVM、启动极快”的类 Clojure 运行时比较兴奋，并将其与 Janet、Fennel（Lua VM）以及 Joker 等替代方案做对比。也有人补充了围绕 Glojure/Gloat 的相关工具生态并关注互操作与协作进展，同时有评论指出 README 里冷启动数据表述存在小出入（7ms 与 6ms）。
+**社区讨论**: 评论整体对这一决定表示认可，认为这是信任与安全方面的重要里程碑，同时也有人提到 NetBSD 早在 2017 年就宣称实现了完全可复现构建。也有声音从实践角度提出担忧，指出在一些复杂工具链中实现可复现性很困难，例如有人提到 Microsoft Visual Studio 环境尤其棘手。
 
-**标签**: `#programming-languages`, `#clojure`, `#go`, `#language-runtime`, `#developer-tools`
+**标签**: `#reproducible-builds`, `#debian`, `#software-supply-chain-security`, `#linux-distributions`, `#build-systems`
 
 ---
 
 <a id="item-4"></a>
-## [法国考虑可能削弱端到端加密消息的措施](https://reclaimthenet.org/france-moves-to-break-encrypted-messaging) ⭐️ 8.0/10
+## [FreeBSD execve() 漏洞可导致本地提权](https://www.freebsd.org/security/advisories/FreeBSD-SA-26:13.exec.asc) ⭐️ 8.0/10
 
-法国正在考虑可能会实质性削弱或限制加密消息的政策措施，引发外界担忧主流应用中的端到端加密（E2EE）会被破坏。相关动向也引起了关于强制访问加密通信会带来哪些安全与社会后果的讨论。 削弱 E2EE 通常会降低隐私并增加网络安全风险，因为任何被强制加入的访问机制都可能被攻击者滥用，而不只是在合法调查中使用。由于加密消息已广泛用于个人、商业与政治沟通，国家或欧盟层面的变化可能影响大量用户与服务提供商。 端到端加密的设计目标是只有发送者与接收者持有密钥，这意味着服务提供商在不改变系统信任模型的情况下无法读取消息内容。以“后门”或强制接入为名的方案通常会引入系统性脆弱点；社区讨论还指出公众常误解哪些应用默认提供 E2EE（例如 Telegram 默认并非 E2EE）。
+FreeBSD 发布了关于 execve() 路径中本地权限提升漏洞的安全公告。该问题据称已在 FreeBSD 15.0R-p7 中修复，社区讨论还引用了第三方的漏洞利用与分析文章。 execve() 是操作系统启动程序的核心接口，因此一旦这里出现本地提权漏洞，普通用户就可能在受影响系统上提升为 root。对 FreeBSD 运维与安全团队而言，这会破坏对主机权限边界的基本假设，使得及时打补丁与复核相关代码路径变得尤为重要。 讨论中强调其根因模式与“运算符优先级/缺少括号”类错误一致，即把未加括号的算术表达式改为显式分组后的写法。外部博客及其链接资料提供了可运行的利用流程讲解，表明该问题具有现实可利用性，而不仅是理论风险。
 
-hackernews · Cider9986 · May 9, 22:14 · [社区讨论](https://news.ycombinator.com/item?id=48078811)
+hackernews · Deeg9rie9usi · May 9, 20:31 · [社区讨论](https://news.ycombinator.com/item?id=48077971)
 
-**背景**: 端到端加密（E2EE）是一种通信设计，只有通信双方的终端设备能够解密消息，中间环节（包括服务提供商）并不持有解密密钥。“加密后门”是指任何允许第三方绕过或破坏加密的内置机制；即便初衷是用于合法取证，也会扩大攻击面并可能被滥用。在政策讨论中，有时会提出客户端扫描等替代方案，但这会把内容检查转移到用户设备上，同样带来安全与隐私风险。
+**背景**: 在类 Unix 系统中，execve() 用于用新程序替换当前进程映像，是 shell 与服务启动可执行文件的关键机制。“本地权限提升”通常意味着攻击者已具备某种本地访问能力（例如普通用户账号），但可以利用漏洞获取更高权限（如 root）。由于 execve() 属于高频关键路径，哪怕是细微的逻辑错误（包括算术计算或优先级导致的偏差）也可能带来全系统级别的安全影响。
 
 <details><summary>参考链接</summary>
 <ul>
-<li><a href="https://en.wikipedia.org/wiki/End-to-end_encryption">End-to-end encryption - Wikipedia</a></li>
-<li><a href="https://proton.me/learn/encryption/glossary/encryption-backdoor">What is an encryption backdoor and why is it risky? | Proton</a></li>
-<li><a href="https://www.internetsociety.org/resources/doc/2020/fact-sheet-client-side-scanning/">Fact Sheet: Client-Side Scanning - Internet Society</a></li>
+<li><a href="https://news.ycombinator.com/item?id=48077971">Local privilege escalation via execve() | Hacker News</a></li>
+<li><a href="https://www.freebsd.org/where/">Get FreeBSD | The FreeBSD Project</a></li>
 
 </ul>
 </details>
 
-**社区讨论**: 评论者普遍嘲讽“禁止乱码”的可行性，并质疑当局究竟如何识别传输中的内容是否加密。也有人认为政策制定者会无视专家警告，直到出现引人注目的重大事故才会回头；另有评论纠正称 Telegram 默认并非端到端加密（而 Signal 是），反映公共讨论中反复出现的认知混乱。
+**社区讨论**: 评论区主要围绕疑似“运算符优先级/括号缺失”导致的 bug 展开，并有人主张通过编码规范强制加括号或拆分表达式来避免此类错误。也有人分享并称赞 Calif.io 的漏洞利用讲解与仓库（包含 exploit 与提示词），同时提醒该公告时间点以及修复已进入 15.0R-p7；另有一些对 CVE 命名的调侃（如“exeCVE”）。
 
-**标签**: `#encryption`, `#privacy`, `#cybersecurity-policy`, `#end-to-end-encryption`, `#EU-regulation`
+**标签**: `#FreeBSD`, `#security-advisory`, `#privilege-escalation`, `#CVE`, `#operating-systems`
+
+---
+
+<a id="item-5"></a>
+## [Let-go：用 Go 实现的类 Clojure 语言，冷启动约 7 毫秒](https://github.com/nooga/let-go) ⭐️ 8.0/10
+
+Let-go 发布为一门纯 Go 实现、与 JVM 版 Clojure 约 90%兼容的语言，提供约 10MB 的静态二进制并宣称冷启动约 7 毫秒。它内置 nREPL 服务器以支持编辑器工具链，并主打与 Go 的紧密互操作来用于脚本与服务开发。 超快冷启动与静态二进制发布，让“像 Clojure 一样写代码”更适合 CLI、短生命周期任务和轻量服务等场景，因为这些场景中 JVM 的部署与启动延迟常是成本。它把 Clojure 风格的开发体验与 Go 生态及可嵌入能力结合起来，切入介于 JVM Clojure 与 Babashka/SCI 等替代运行时之间的空间。 在实现上，Let-go 采用手写编译器与基于栈的虚拟机（stack VM），并支持 AOT 把代码编译为可移植的字节码包以及独立可执行文件（运行时+字节码）。它也明确不是 Clojure 的直接替代品：不支持加载 JAR、没有完整的 Java API，因此现有 Clojure 项目很可能需要修改才能运行。
+
+hackernews · marcingas · May 9, 17:52 · [社区讨论](https://news.ycombinator.com/item?id=48076815)
+
+**背景**: nREPL 是一种面向 Clojure 生态的网络 REPL 协议；像 CIDER 和 Calva 这样的编辑器通常通过连接 nREPL 服务器来进行求值与交互，并且常依赖中间件（例如 cider-nrepl）来提供更丰富的操作。Babashka 是基于 SCI（Small Clojure Interpreter）构建的快速启动 Clojure 解释器，它执行的是 Clojure 子集且不需要生成 JVM 字节码，因此启动时间通常远短于 JVM。基于栈的虚拟机（stack VM）是一种常见运行时设计，指令主要围绕操作数栈工作，有利于用紧凑字节码在小型自包含运行时中执行。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://github.com/nrepl/nrepl">GitHub - nrepl / nrepl : A Clojure network REPL that provides a server...</a></li>
+<li><a href="https://github.com/babashka/babashka">GitHub - babashka/babashka: Native, fast starting Clojure interpreter ...</a></li>
+<li><a href="https://babashka.org/sci/">sci | Configurable Clojure /Script interpreter suitable for scripting and...</a></li>
+
+</ul>
+</details>
+
+**社区讨论**: 评论区把它与 Janet、Fennel 等不依赖 JVM 的 Lisp/Clojure 相邻方案进行对比，也有人提到 Glojure 及其 AOT 自动化工具 Gloat，并表达了希望相关项目协作互通的兴趣。也有用户指出文档里“7ms 与 6ms”表述不一致这类小问题并吐槽命名，但整体上对“更贴近 Go 生态、可生成漂亮二进制、并能结合 channel 与标准库”的 Clojure 式语言表现出明显期待。
+
+**标签**: `#programming-languages`, `#clojure`, `#golang`, `#language-runtime`, `#developer-tools`
+
+---
+
+<a id="item-6"></a>
+## [cPanel 在约 4.4 万台服务器遭勒索后修补三处漏洞](https://www.copahost.com/blog/cpanels-black-week-three-new-vulnerabilities-patched-after-ransomware-attack-on-44000-servers/) ⭐️ 8.0/10
+
+在一场据称攻陷约 4.4 万台 cPanel 服务器的勒索软件行动之后，cPanel 披露并修补了三处新发现的漏洞。由于漏洞披露与修复节奏密集，这一事件被形容为 cPanel 运营者的“黑色一周”。 cPanel 在共享主机环境中部署广泛，而一台服务器往往承载多个网站、数据库与邮件系统，因此一旦被攻陷就可能对大量组织产生“级联式”影响。该事件凸显了广泛使用的主机控制面板存在系统性风险，并强调服务商需要快速打补丁与加固配置。 相关报道指出，“4.4 万台”可能仅统计了在无需认证的互联网扫描中能看到勒索痕迹的服务器，因此真实影响范围可能更大或分布不同。由于 cPanel 集中管理域名、邮件、数据库、文件与 FTP 等关键能力，攻击者一旦获得控制权，就可能从单一点位影响多个租户与多类服务。
+
+hackernews · ggallas · May 9, 17:06 · [社区讨论](https://news.ycombinator.com/item?id=48076465)
+
+**背景**: cPanel 是一种基于 Web 的主机控制面板，用于管理域名、邮箱账户、数据库、文件以及 FTP 访问等常见托管组件。在共享主机模式下，一台 cPanel 服务器往往服务许多不同客户，这会放大任何成功利用漏洞后的影响半径。因而，面向托管基础设施的勒索软件行动可能同时扰乱或勒索大量下游网站与企业。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://www.bitrecover.com/blog/cpanel-vulnerability-exploited/">cPanel Vulnerability Exploited: Attack Preventions, Causes & Effect</a></li>
+<li><a href="https://worksent.com/news/cpanel-zero-day-vulnerability-sorry-ransomware-attack/">Critical cPanel Zero Day Exploit Hits 40,000+ Servers in... - Worksent</a></li>
+<li><a href="https://panelica.com/blog/cpanel-30-day-security-storm-2026">cPanel 's 30-Day Security Storm: 44,000 Servers, 70M Domains, Two...</a></li>
+
+</ul>
+</details>
+
+**社区讨论**: 评论者指出并非所有主机商都使用 cPanel，而且 cPanel 近年的涨价促使一些服务商转向其他方案。更多人认为根本问题在于老旧且广泛部署的代码库，以及典型托管环境中租户隔离（sandboxing）不足，使长期运行的系统尤其脆弱。尽管有些吐槽带有讽刺，但总体观点是共享式基础设施会放大安全失误的后果。
+
+**标签**: `#security`, `#vulnerability`, `#web-hosting`, `#ransomware`, `#cPanel`
+
+---
+
+<a id="item-7"></a>
+## [Chrome DevTools MCP 让 AI 代理控制实时浏览器](https://github.com/ChromeDevTools/chrome-devtools-mcp) ⭐️ 8.0/10
+
+ChromeDevTools 发布了 chrome-devtools-mcp，这是一个 MCP 服务器（并提供实验性 CLI），让 AI 编码代理能够通过 Chrome DevTools 的能力控制并检查实时 Chrome 实例。它旨在用 DevTools 级别的工具能力实现更可靠的自动化、更深入的调试以及性能分析，而不只是脚本式的浏览器驱动。 随着 MCP 生态快速普及，把 Chrome DevTools 的能力封装成 MCP 服务器，可以让 Claude、Cursor、Copilot 等代理更容易采用标准化的工具调用方式来做浏览器检查与性能剖析。这有望让代理驱动的网页调试与性能工作更可靠，相比只做 DOM 层面自动化的易碎方案更具可控性。 该项目使用 Puppeteer 做自动化，并可录制 trace；性能工具还可能通过 Google CrUX API 拉取真实用户体验的 field data，除非使用 --no-performance-crux 关闭。它仅“官方支持” Google Chrome 与 Chrome for Testing，并且默认开启使用统计上报（可用 --no-usage-statistics 退出），同时也强调 MCP 客户端可检查与修改浏览器/DevTools 数据，因此不应在被连接的实例中暴露敏感信息。
+
+rss · GitHub Trending - Daily · May 10, 01:33
+
+**背景**: Model Context Protocol（MCP）是 Anthropic 于 2024 年 11 月提出的开放标准，用于通过统一的客户端/服务器接口把基于 LLM 的代理连接到外部工具。Chrome DevTools 建立在 Chrome DevTools Protocol（CDP）之上，CDP 是一种远程调试 API，可对 Chromium 系浏览器进行检查、控制与性能剖析。将类似 DevTools 的能力通过 MCP 服务器暴露出来，可以让代理以结构化的工具调用方式执行浏览器调试与性能操作，而不仅依赖页面脚本。
+
+<details><summary>参考链接</summary>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Model_Context_Protocol">Model Context Protocol - Wikipedia</a></li>
+<li><a href="https://www.anthropic.com/news/model-context-protocol">Introducing the Model Context Protocol \ Anthropic</a></li>
+<li><a href="https://developers.cloudflare.com/browser-run/cdp/">Chrome DevTools Protocol ( CDP ) · Cloudflare Browser Run docs</a></li>
+
+</ul>
+</details>
+
+**标签**: `#Chrome DevTools`, `#MCP`, `#AI agents`, `#Browser automation`, `#Developer tooling`
 
 ---
