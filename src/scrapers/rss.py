@@ -79,10 +79,11 @@ class RSSScraper(BaseScraper):
 
             # Parse feed
             feed = feedparser.parse(response.text)
+            feed_published_at = self._parse_date(feed.feed)
 
             for entry in feed.entries:
                 # Parse published date
-                published_at = self._parse_date(entry)
+                published_at = self._parse_date(entry) or feed_published_at
                 if not published_at or published_at < since:
                     continue
 

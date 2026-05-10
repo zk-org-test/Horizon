@@ -125,7 +125,7 @@ class TelegramChannelConfig(BaseModel):
 
 class TelegramConfig(BaseModel):
     """Telegram source configuration."""
-    enabled: bool = True
+    enabled: bool = False
     channels: List[TelegramChannelConfig] = Field(default_factory=list)
 
 
