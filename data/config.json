@@ -2,14 +2,13 @@
   "version": "1.0",
   "ai": {
     "provider": "openai",
-    "model": "deepseek-v4-flash",
-    "base_url": "https://api.deepseek.com",
+    "model": "gpt-5.2-chat-latest",
+    "base_url": "https://allinai7.cloud/v1",
     "api_key_env": "OPENAI_API_KEY",
     "temperature": 0.3,
-    "max_tokens": 8192,
+    "max_tokens": 4096,
     "languages": [
-      "zh",
-      "en"
+      "zh"
     ]
   },
   "sources": {
@@ -33,15 +32,15 @@
       },
       {
         "type": "repo_releases",
-        "owner": "triton-lang",
-        "repo": "triton",
+        "owner": "huggingface",
+        "repo": "transformers",
         "enabled": true
       }
     ],
     "hackernews": {
       "enabled": true,
       "fetch_top_stories": 30,
-      "min_score": 150
+      "min_score": 120
     },
     "rss": [
       {
@@ -55,12 +54,6 @@
         "url": "https://mshibanami.github.io/GitHubTrendingRSS/daily/all.xml",
         "enabled": true,
         "category": "github-trending"
-      },
-      {
-        "name": "LWN.net",
-        "url": "https://lwn.net/headlines/full_text?key=${LWN_KEY}",
-        "enabled": true,
-        "category": "linux-kernel"
       }
     ],
     "reddit": {
@@ -84,40 +77,18 @@
         }
       ],
       "users": [],
-      "fetch_comments": 10
-    },
-    "telegram": {
-      "enabled": true,
-      "channels": [
-        {
-          "channel": "zaihuapd",
-          "enabled": true,
-          "fetch_limit": 20
-        }
-      ]
-    },
-    "twitter": {
-      "enabled": true,
-      "users": [
-        "karpathy",
-        "roifex"
-      ],
-      "fetch_limit": 10,
-      "fetch_reply_text": false,
-      "max_replies_per_tweet": 3,
-      "max_tweets_to_expand": 10,
-      "reply_min_likes": 5
+      "fetch_comments": 5
     }
   },
   "filtering": {
-    "ai_score_threshold": 8.0,
+    "ai_score_threshold": 7.5,
     "time_window_hours": 24
   },
   "webhook": {
     "enabled": true,
     "url_env": "HORIZON_WEBHOOK_URL",
-    "delivery": "summary_and_items",
-    "overview_position": "last",
+    "delivery": "summary",
+    "overview_position": "first",
     "platform": "feishu",
     "layout": "collapsible",
     "fallback_layout": "markdown",
