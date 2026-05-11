@@ -13,15 +13,15 @@ kind: finance
 - 美股主线：科技。
 - 港股主线：科技。
 - 全市场热度最高方向：科技。
-- 当前总龙头：1236.HK（Shenzhen Ldrobot Co., Ltd，+133.31%）。
+- 当前总龙头：1236.HK（Shenzhen Ldrobot Co., Ltd，+133.69%）。
 
 ## 板块热度榜
 
-1. 科技：20 家上榜，平均 +29.74% ，龙头 1236.HK（Shenzhen Ldrobot Co., Ltd）
+1. 科技：20 家上榜，平均 +30.10% ，龙头 1236.HK（Shenzhen Ldrobot Co., Ltd）
    热点原因：该方向上榜公司最多，且平均涨幅领先，说明资金集中度最高。
-2. 工业：9 家上榜，平均 +24.23% ，龙头 RKLB（Rocket Lab Corp）
-3. 可选消费：3 家上榜，平均 +33.12% ，龙头 2339.HK（BWI INT'L）
-4. 必选消费：3 家上榜，平均 +17.22% ，龙头 8160.HK（GOLDWAY EDU）
+2. 工业：9 家上榜，平均 +24.24% ，龙头 RKLB（Rocket Lab Corp）
+3. 可选消费：4 家上榜，平均 +29.18% ，龙头 2339.HK（BWI INT'L）
+4. 必选消费：2 家上榜，平均 +17.93% ，龙头 8160.HK（GOLDWAY EDU）
 5. 综合企业：1 家上榜，平均 +53.85% ，龙头 2946.HK（EASYHOLD GROUP）
 
 ## 昨日美股重点公司
@@ -67,11 +67,11 @@ kind: finance
 
 ## 昨日港股重点公司
 
-1. [`1236.HK`](https://finance.yahoo.com/quote/1236.HK) Shenzhen Ldrobot Co., Ltd | +133.31% | 分类：科技 / 计算机硬件
+1. [`1236.HK`](https://finance.yahoo.com/quote/1236.HK) Shenzhen Ldrobot Co., Ltd | +133.69% | 分类：科技 / 计算机硬件
    公司：Shenzhen Ldrobot Co., Ltd 主营方向与 计算机硬件 相关。
    产品：公司主要产品与 计算机硬件 业务相关。
    走强原因：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-2. [`2339.HK`](https://finance.yahoo.com/quote/2339.HK) BWI INT'L | +57.37% | 分类：可选消费 / 汽车零部件
+2. [`2339.HK`](https://finance.yahoo.com/quote/2339.HK) BWI INT'L | +56.25% | 分类：可选消费 / 汽车零部件
    公司：BWI INT'L 主营方向与 汽车零部件 相关。
    产品：公司主要产品与 汽车零部件 业务相关。
    走强原因：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
@@ -79,38 +79,38 @@ kind: finance
    公司：EASYHOLD GROUP 主营方向与 综合企业 相关。
    产品：公司主要产品与 综合企业 业务相关。
    走强原因：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-4. [`0465.HK`](https://finance.yahoo.com/quote/0465.HK) FUTONG TECH | +45.93% | 分类：科技 / 信息技术服务
+4. [`0465.HK`](https://finance.yahoo.com/quote/0465.HK) FUTONG TECH | +48.53% | 分类：科技 / 信息技术服务
    公司：FUTONG TECH 主营方向与 信息技术服务 相关。
    产品：公司主要产品与 信息技术服务 业务相关。
    走强原因：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-5. [`2591.HK`](https://finance.yahoo.com/quote/2591.HK) INNOGEN-B | +43.24% | 分类：医疗健康 / 生物科技
+5. [`2591.HK`](https://finance.yahoo.com/quote/2591.HK) INNOGEN-B | +39.92% | 分类：医疗健康 / 生物科技
    公司：INNOGEN-B 主营方向与 生物科技 相关。
    产品：公司主要产品与 生物科技 业务相关。
    走强原因：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
 
 ## 其余港股上榜速览
 
-6. [`3816.HK`](https://finance.yahoo.com/quote/3816.HK) KFM KINGDOM | +31.93% | 分类：工业 / 金属加工 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+6. [`3816.HK`](https://finance.yahoo.com/quote/3816.HK) KFM KINGDOM | +30.72% | 分类：工业 / 金属加工 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
 7. [`0482.HK`](https://finance.yahoo.com/quote/0482.HK) SANDMARTIN INTL | +27.42% | 分类：科技 / 通信设备 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-8. [`1327.HK`](https://finance.yahoo.com/quote/1327.HK) LUXXU GROUP | +23.38% | 分类：可选消费 / 奢侈品 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-9. [`2567.HK`](https://finance.yahoo.com/quote/2567.HK) QINIU | +23.23% | 分类：科技 / 基础软件 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-10. [`2355.HK`](https://finance.yahoo.com/quote/2355.HK) BAOYE GROUP | +22.76% | 分类：工业 / 工程建设 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-11. [`8160.HK`](https://finance.yahoo.com/quote/8160.HK) GOLDWAY EDU | +21.57% | 分类：必选消费 / 教育培训服务 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-12. [`0731.HK`](https://finance.yahoo.com/quote/0731.HK) C&D NEWIN | +20.88% | 分类：基础材料 / 纸业与纸制品 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-13. [`1087.HK`](https://finance.yahoo.com/quote/1087.HK) INVESTECH HLDGS | +20.59% | 分类：科技 / 通信设备 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-14. [`0745.HK`](https://finance.yahoo.com/quote/0745.HK) CN CULTURE GP | +19.82% | 分类：通信服务 / 广告营销 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-15. [`1823.HK`](https://finance.yahoo.com/quote/1823.HK) HUAYUEXPRESSWAY | +19.29% | 分类：工业 / 基建运营 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+8. [`2567.HK`](https://finance.yahoo.com/quote/2567.HK) QINIU | +25.25% | 分类：科技 / 基础软件 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+9. [`2355.HK`](https://finance.yahoo.com/quote/2355.HK) BAOYE GROUP | +24.81% | 分类：工业 / 工程建设 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+10. [`1327.HK`](https://finance.yahoo.com/quote/1327.HK) LUXXU GROUP | +23.38% | 分类：可选消费 / 奢侈品 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+11. [`2631.HK`](https://finance.yahoo.com/quote/2631.HK) SICC | +21.70% | 分类：科技 / 半导体设备与材料 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+12. [`8160.HK`](https://finance.yahoo.com/quote/8160.HK) GOLDWAY EDU | +21.57% | 分类：必选消费 / 教育培训服务 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+13. [`0745.HK`](https://finance.yahoo.com/quote/0745.HK) CN CULTURE GP | +21.01% | 分类：通信服务 / 广告营销 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+14. [`0731.HK`](https://finance.yahoo.com/quote/0731.HK) C&D NEWIN | +20.88% | 分类：基础材料 / 纸业与纸制品 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+15. [`1087.HK`](https://finance.yahoo.com/quote/1087.HK) INVESTECH HLDGS | +20.59% | 分类：科技 / 通信设备 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
 16. [`1912.HK`](https://finance.yahoo.com/quote/1912.HK) CONTEL | +19.15% | 分类：科技 / 半导体 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-17. [`2631.HK`](https://finance.yahoo.com/quote/2631.HK) SICC | +18.72% | 分类：科技 / 半导体设备与材料 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-18. [`6809.HK`](https://finance.yahoo.com/quote/6809.HK) MONTAGE TECH | +17.41% | 分类：科技 / 半导体 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-19. [`1300.HK`](https://finance.yahoo.com/quote/1300.HK) TRIGIANT | +16.87% | 分类：科技 / 通信设备 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
-20. [`2226.HK`](https://finance.yahoo.com/quote/2226.HK) HONWORLD GP | +15.79% | 分类：必选消费 / 综合企业 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+17. [`1823.HK`](https://finance.yahoo.com/quote/1823.HK) HUAYUEXPRESSWAY | +18.57% | 分类：工业 / 基建运营 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+18. [`8279.HK`](https://finance.yahoo.com/quote/8279.HK) AGTECH HOLDINGS | +18.46% | 分类：可选消费 / 综合企业 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+19. [`6809.HK`](https://finance.yahoo.com/quote/6809.HK) MONTAGE TECH | +17.25% | 分类：科技 / 半导体 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
+20. [`1300.HK`](https://finance.yahoo.com/quote/1300.HK) TRIGIANT | +16.27% | 分类：科技 / 通信设备 | 触发：公开信息显示资金主要围绕相关业务主题与短线催化集中交易。
 
 ## 核心龙头
 
 - 最强板块：科技
 - 最强细分行业：半导体及设备
-- 总龙头：1236.HK（Shenzhen Ldrobot Co., Ltd，+133.31%）
+- 总龙头：1236.HK（Shenzhen Ldrobot Co., Ltd，+133.69%）
 
 ## 上涨原因归因
 
@@ -122,4 +122,4 @@ kind: finance
 
 科技 方向短线仍可能延续，但更大概率出现“主线延续、个股分化”结构；判断关键在于次日是否继续放量、龙头是否保持强势。
 
-当前总龙头是 1236.HK（Shenzhen Ldrobot Co., Ltd，+133.31%），但公开新闻不足，结论主要基于榜单结构与涨幅分布。
+当前总龙头是 1236.HK（Shenzhen Ldrobot Co., Ltd，+133.69%），但公开新闻不足，结论主要基于榜单结构与涨幅分布。
