@@ -393,7 +393,8 @@ class FinanceDigestRunner:
             *(self._enrich_mover(mover) for mover in hk_top),
         )
         await self._ai_label_movers(us_top + hk_top)
-        await self._ai_deepen_focus_movers(us_top[:5] + hk_top[:5])
+        focus_candidates = [mover for mover in (us_top[:5] + hk_top[:5]) if self._mover_needs_refinement(mover)]
+        await self._ai_deepen_focus_movers(focus_candidates)
 
         all_top = us_top + hk_top
         strongest_sector = pick_strongest_group([asdict(item) for item in all_top], "sector_zh")
@@ -1218,6 +1219,18 @@ class FinanceDigestRunner:
             for value in [
                 mover.sector_zh,
                 mover.industry_zh,
+                mover.company_intro,
+                mover.main_products,
+                mover.move_reason,
+            ]
+        )
+
+    def _mover_needs_refinement(self, mover: MarketMover) -> bool:
+        if self._mover_needs_localization(mover):
+            return True
+        return any(
+            self._looks_generic(value or "")
+            for value in [
                 mover.company_intro,
                 mover.main_products,
                 mover.move_reason,
