@@ -90,6 +90,26 @@
     "ai_score_threshold": 7.5,
     "time_window_hours": 24
   },
+  "digests": {
+    "finance": {
+      "enabled": true,
+      "language": "zh",
+      "top_n": 20,
+      "webhook_title": "金融日报",
+      "financial_datasets_api_key_env": "FINANCIAL_DATASETS_API_KEY",
+      "us_candidate_limit": 100,
+      "hk_candidate_limit": 200
+    },
+    "ai": {
+      "enabled": true,
+      "language": "zh",
+      "top_n": 20,
+      "webhook_title": "AI 日报",
+      "product_hunt_token_env": "PRODUCT_HUNT_TOKEN",
+      "github_feed_name": "GitHub Trending - Daily",
+      "product_hunt_feed_name": "Product Hunt"
+    }
+  },
   "webhook": {
     "enabled": true,
     "url_env": "HORIZON_WEBHOOK_URL",

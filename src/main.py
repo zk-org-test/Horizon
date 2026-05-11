@@ -10,6 +10,7 @@ from rich.console import Console
 
 from .storage.manager import StorageManager
 from .orchestrator import HorizonOrchestrator
+from .digests import DigestOrchestrator
 
 
 console = Console()
@@ -37,6 +38,8 @@ def main():
 
     parser = argparse.ArgumentParser(description="Horizon - AI-Driven Information Aggregation System")
     parser.add_argument("--hours", type=int, help="Force fetch from last N hours")
+    parser.add_argument("--digests", action="store_true", help="Run finance + AI digest mode")
+    parser.add_argument("--dry-run", action="store_true", help="Build output without sending webhook")
     args = parser.parse_args()
 
     try:
@@ -64,9 +67,12 @@ def main():
             console.print(f"[bold red]❌ Error loading configuration: {e}[/bold red]")
             sys.exit(1)
 
-        # Create and run orchestrator
-        orchestrator = HorizonOrchestrator(config, storage)
-        asyncio.run(orchestrator.run(force_hours=args.hours))
+        if args.digests or (config.digests and (config.digests.finance.enabled or config.digests.ai.enabled)):
+            orchestrator = DigestOrchestrator(config, storage)
+            asyncio.run(orchestrator.run(dry_run=args.dry_run))
+        else:
+            orchestrator = HorizonOrchestrator(config, storage)
+            asyncio.run(orchestrator.run(force_hours=args.hours))
 
     except KeyboardInterrupt:
         console.print("\n[yellow]⚠️  Interrupted by user[/yellow]")
@@ -115,12 +121,26 @@ def print_config_template():
   "filtering": {
     "ai_score_threshold": 7.0,
     "time_window_hours": 24
+  },
+  "digests": {
+    "finance": {
+      "enabled": true,
+      "language": "zh",
+      "top_n": 20
+    },
+    "ai": {
+      "enabled": true,
+      "language": "zh",
+      "top_n": 20
+    }
   }
 }
 
 Also create a .env file with:
 ANTHROPIC_API_KEY=your_api_key_here
 GITHUB_TOKEN=your_github_token_here (optional but recommended)
+PRODUCT_HUNT_TOKEN=your_product_hunt_token_here
+FINANCIAL_DATASETS_API_KEY=your_financial_datasets_api_key_here (optional but recommended)
 """
     console.print(template)
 

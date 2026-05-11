@@ -191,6 +191,37 @@ class FilteringConfig(BaseModel):
     time_window_hours: int = 24
 
 
+class FinanceDigestConfig(BaseModel):
+    """Configuration for the finance digest."""
+
+    enabled: bool = False
+    language: str = "zh"
+    top_n: int = 20
+    webhook_title: str = "金融日报"
+    financial_datasets_api_key_env: str = "FINANCIAL_DATASETS_API_KEY"
+    us_candidate_limit: int = 100
+    hk_candidate_limit: int = 200
+
+
+class AIDigestConfig(BaseModel):
+    """Configuration for the AI digest."""
+
+    enabled: bool = False
+    language: str = "zh"
+    top_n: int = 20
+    webhook_title: str = "AI 日报"
+    product_hunt_token_env: str = "PRODUCT_HUNT_TOKEN"
+    github_feed_name: str = "GitHub Trending - Daily"
+    product_hunt_feed_name: str = "Product Hunt"
+
+
+class DigestsConfig(BaseModel):
+    """Configuration for digest-based daily runs."""
+
+    finance: FinanceDigestConfig = Field(default_factory=FinanceDigestConfig)
+    ai: AIDigestConfig = Field(default_factory=AIDigestConfig)
+
+
 class Config(BaseModel):
     """Main configuration model."""
 
@@ -200,3 +231,4 @@ class Config(BaseModel):
     filtering: FilteringConfig
     email: Optional[EmailConfig] = None
     webhook: Optional[WebhookConfig] = None
+    digests: Optional[DigestsConfig] = None

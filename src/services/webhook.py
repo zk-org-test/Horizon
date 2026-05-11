@@ -577,6 +577,23 @@ class WebhookNotifier:
         for message in messages:
             await self.notify(message)
 
+    async def send_digest_messages(self, digests: List[dict[str, Any]]) -> None:
+        """Send multiple digest messages in the exact provided order."""
+        for digest in digests:
+            await self.notify(
+                {
+                    "date": digest.get("date", ""),
+                    "language": digest.get("lang", ""),
+                    "important_items": 0,
+                    "all_items": 0,
+                    "result": "success",
+                    "timestamp": str(int(datetime.now(timezone.utc).timestamp())),
+                    "message_kind": digest.get("kind", "digest"),
+                    "message_title": digest["title"],
+                    "summary": digest["summary"],
+                }
+            )
+
     async def send_failure(
         self,
         date: str,

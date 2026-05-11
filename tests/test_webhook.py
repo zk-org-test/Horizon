@@ -1075,3 +1075,43 @@ class TestSendFailureNotification:
             ts = int(vars["timestamp"])
             assert before <= ts <= after
         del os.environ[_TEST_URL_ENV]
+
+
+class TestSendDigestMessages:
+    def test_send_digest_messages_preserves_input_order(self):
+        os.environ[_TEST_URL_ENV] = _TEST_URL
+        config = WebhookConfig(
+            enabled=True,
+            url_env=_TEST_URL_ENV,
+            delivery="summary",
+        )
+        notifier = WebhookNotifier(config)
+        digests = [
+            {
+                "kind": "finance",
+                "title": "金融日报 | 2026-05-10",
+                "summary": "# 金融日报 | 2026-05-10\n\n第一条",
+                "lang": "zh",
+                "date": "2026-05-10",
+            },
+            {
+                "kind": "ai",
+                "title": "AI 日报 | 2026-05-10",
+                "summary": "# AI 日报 | 2026-05-10\n\n第二条",
+                "lang": "zh",
+                "date": "2026-05-10",
+            },
+        ]
+
+        with patch.object(notifier, "notify", new_callable=AsyncMock) as mock_notify:
+            _run_async(notifier.send_digest_messages(digests))
+
+            assert mock_notify.call_count == 2
+            first = mock_notify.call_args_list[0][0][0]
+            second = mock_notify.call_args_list[1][0][0]
+            assert first["message_title"] == "金融日报 | 2026-05-10"
+            assert second["message_title"] == "AI 日报 | 2026-05-10"
+            assert first["message_kind"] == "finance"
+            assert second["message_kind"] == "ai"
+
+        del os.environ[_TEST_URL_ENV]
