@@ -109,12 +109,15 @@ class FinancialDatasetsClient:
             return None
 
         headers = {"X-API-KEY": self.api_key}
-        response = await self.client.get(
-            f"{self.base_url}{path}",
-            params=params,
-            headers=headers,
-            timeout=30.0,
-        )
+        try:
+            response = await self.client.get(
+                f"{self.base_url}{path}",
+                params=params,
+                headers=headers,
+                timeout=30.0,
+            )
+        except httpx.HTTPError:
+            return None
         if response.status_code != 200:
             return None
         return response.json()
