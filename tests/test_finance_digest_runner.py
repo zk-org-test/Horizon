@@ -1,5 +1,5 @@
 import asyncio
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import httpx
 
@@ -106,3 +106,24 @@ def test_clean_external_snippet_removes_search_result_boilerplate():
 
     assert "Reuters" not in cleaned
     assert "Stock Price & Latest News" not in cleaned
+
+
+def test_ai_deepen_focus_movers_overrides_generic_fallback_text():
+    ai_client = Mock()
+    ai_client.complete = AsyncMock(
+        return_value='{"items":[{"symbol":"INOD","company_intro":"Innodata 是一家 AI 数据工程公司。","main_products":"AI 训练数据与媒体情报 SaaS。","move_reason":"创纪录业绩并上调指引推动上涨。"}]}'
+    )
+    runner = FinanceDigestRunner(FinanceDigestConfig(enabled=True, top_n=5), ai_client, httpx.AsyncClient())
+    mover = MarketMover(symbol="INOD", name="Innodata Inc", market="us", change_pct=85.75)
+    mover.company_intro = "Innodata Inc 主营方向与 IT服务相关。"
+    mover.main_products = "公司主要产品与 IT服务业务相关。"
+    mover.move_reason = "公开信息显示资金主要围绕相关业务主题与短线催化集中交易。"
+    mover.business_summary = "Innodata provides AI training data and data engineering services."
+    mover.news_headlines = ["Record quarter and raised full-year guidance."]
+
+    asyncio.run(runner._ai_deepen_focus_movers([mover]))
+    asyncio.run(runner.http_client.aclose())
+
+    assert mover.company_intro == "Innodata 是一家 AI 数据工程公司。"
+    assert mover.main_products == "AI 训练数据与媒体情报 SaaS。"
+    assert mover.move_reason == "创纪录业绩并上调指引推动上涨。"

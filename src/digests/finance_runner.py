@@ -304,6 +304,7 @@ class FinanceDigestRunner:
             *(self._enrich_mover(mover) for mover in hk_top),
         )
         await self._ai_label_movers(us_top + hk_top)
+        await self._ai_deepen_focus_movers(us_top[:5] + hk_top[:5])
 
         all_top = us_top + hk_top
         strongest_sector = pick_strongest_group([asdict(item) for item in all_top], "sector_zh")
@@ -553,6 +554,67 @@ class FinanceDigestRunner:
                 mover.main_products = str(item.get("main_products") or mover.main_products or "").strip() or None
                 mover.move_reason = str(item.get("move_reason") or mover.move_reason or "").strip() or None
                 self._apply_textual_fallbacks(mover)
+
+    async def _ai_deepen_focus_movers(self, movers: list[MarketMover]) -> None:
+        if not movers:
+            return
+
+        for mover in movers:
+            payload = {
+                "symbol": mover.symbol,
+                "market": mover.market,
+                "name_en": mover.name,
+                "name_zh_hint": mover.name_zh,
+                "sector_hint": mover.sector_zh or mover.sector,
+                "industry_hint": mover.industry_zh or mover.industry,
+                "business_summary": (mover.business_summary or "")[:1600],
+                "news_headlines": (mover.news_headlines or [])[:4],
+                "search_context": (mover.search_context or [])[:2],
+            }
+            system = (
+                "你是一名中文卖方研究员。请基于公司业务摘要和新闻线索，为单只股票写出真正有信息量的三段内容："
+                "公司是做什么的、主要产品/服务是什么、这次上涨的具体原因是什么。"
+                "禁止输出空话，例如“主营方向与X相关”“主要产品与X业务相关”“资金围绕题材交易”。"
+                "若缺乏明确催化，要明确写“暂无明确公司公告催化，更像板块/情绪驱动”，但仍要结合公司业务解释。"
+                "只返回 JSON。"
+            )
+            user = (
+                '返回 JSON：{"symbol":"","company_intro":"","main_products":"","move_reason":"","sector_zh":"","industry_zh":"","name_zh":""}\n'
+                f"股票信息：{payload}"
+            )
+            try:
+                response = await asyncio.wait_for(
+                    self.ai_client.complete(system=system, user=user, max_tokens=1200),
+                    timeout=25,
+                )
+                item = parse_json_response(response) or {}
+            except Exception:
+                item = {}
+            if isinstance(item.get("items"), list) and item["items"]:
+                item = item["items"][0] or {}
+
+            company_intro = str(item.get("company_intro") or "").strip()
+            main_products = str(item.get("main_products") or "").strip()
+            move_reason = str(item.get("move_reason") or "").strip()
+            if company_intro and not self._looks_generic(company_intro):
+                mover.company_intro = company_intro
+            if main_products and not self._looks_generic(main_products):
+                mover.main_products = main_products
+            if move_reason and not self._looks_generic(move_reason):
+                mover.move_reason = move_reason
+            if item.get("name_zh"):
+                mover.name_zh = str(item.get("name_zh")).strip() or mover.name_zh
+            if item.get("sector_zh"):
+                mover.sector_zh = self._normalize_chinese_category(
+                    str(item.get("sector_zh")),
+                    fallback=self._translate_sector(mover.sector),
+                )
+            if item.get("industry_zh"):
+                mover.industry_zh = self._normalize_chinese_category(
+                    str(item.get("industry_zh")),
+                    fallback=self._translate_industry(mover.industry, mover.sector_zh),
+                )
+            self._apply_textual_fallbacks(mover)
 
     async def _generate_ai_insights(
         self,
@@ -914,6 +976,19 @@ class FinanceDigestRunner:
                 return fallback_text
             return "公开信息显示公司业务与近期市场关注主题相关，资金围绕该方向集中交易。"
         return normalized
+
+    @staticmethod
+    def _looks_generic(text: str) -> bool:
+        normalized = (text or "").strip()
+        generic_markers = [
+            "主营方向与",
+            "主要产品与",
+            "业务相关",
+            "资金主要围绕",
+            "题材与资金偏好",
+            "短线催化集中交易",
+        ]
+        return any(marker in normalized for marker in generic_markers)
 
     @staticmethod
     def _safe_int(value: Any) -> Optional[int]:
