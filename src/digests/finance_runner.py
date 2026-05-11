@@ -265,6 +265,7 @@ class FinanceDigestRunner:
         self.config = config
         self.ai_client = ai_client
         self.http_client = http_client
+        self.search_semaphore = asyncio.Semaphore(6)
         self.financial_client = FinancialDatasetsClient(
             os.getenv(config.financial_datasets_api_key_env),
             http_client,
@@ -287,6 +288,7 @@ class FinanceDigestRunner:
             *(self._enrich_mover(mover) for mover in hk_top),
         )
         await self._ai_label_movers(us_top + hk_top)
+        await self._normalize_movers_to_chinese(us_top + hk_top)
 
         all_top = us_top + hk_top
         strongest_sector = pick_strongest_group([asdict(item) for item in all_top], "sector_zh")
@@ -464,7 +466,7 @@ class FinanceDigestRunner:
             mover.news_headlines = []
             mover.catalyst = None
 
-        mover.search_context = await asyncio.to_thread(self._search_public_context, mover.symbol, mover.name, mover.market)
+        mover.search_context = await self._get_public_context(mover.symbol, mover.name, mover.market)
         if mover.search_context and not mover.news_headlines:
             mover.news_headlines = mover.search_context[:3]
         if not mover.catalyst:
@@ -522,6 +524,72 @@ class FinanceDigestRunner:
                 mover.company_intro = str(item.get("company_intro") or mover.company_intro or "").strip() or None
                 mover.main_products = str(item.get("main_products") or mover.main_products or "").strip() or None
                 mover.move_reason = str(item.get("move_reason") or mover.move_reason or "").strip() or None
+                self._apply_textual_fallbacks(mover)
+
+    async def _normalize_movers_to_chinese(self, movers: list[MarketMover]) -> None:
+        pending = [mover for mover in movers if self._mover_needs_localization(mover)]
+        if not pending:
+            return
+
+        for start in range(0, len(pending), 12):
+            batch = pending[start:start + 12]
+            payload = [
+                {
+                    "symbol": mover.symbol,
+                    "name_en": mover.name,
+                    "name_zh_hint": mover.name_zh,
+                    "sector_hint": mover.sector_zh or mover.sector,
+                    "industry_hint": mover.industry_zh or mover.industry,
+                    "company_intro": mover.company_intro,
+                    "main_products": mover.main_products,
+                    "move_reason": mover.move_reason,
+                    "business_summary": (mover.business_summary or "")[:1000],
+                    "search_context": (mover.search_context or [])[:3],
+                }
+                for mover in batch
+            ]
+            system = (
+                "你是一名中文投研编辑。请把字段统一改写为自然、简洁、专业的中文。"
+                "不要保留英文整句；行业分类必须给出中文一级分类和中文二级分类，即使需要基于业务与产品自行判断。"
+                "输出严格 JSON。"
+            )
+            user = (
+                '返回 JSON：{"items":[{"symbol":"","name_zh":"","sector_zh":"","industry_zh":"","company_intro":"","main_products":"","move_reason":""}]}\n'
+                f"股票列表：{payload}"
+            )
+            try:
+                response = await asyncio.wait_for(
+                    self.ai_client.complete(system=system, user=user, max_tokens=2600),
+                    timeout=30,
+                )
+                result = parse_json_response(response) or {}
+            except Exception:
+                result = {}
+
+            normalized_map = {str(item.get("symbol")): item for item in result.get("items", []) if item.get("symbol")}
+            for mover in batch:
+                item = normalized_map.get(mover.symbol, {})
+                mover.name_zh = str(item.get("name_zh") or mover.name_zh or "").strip() or mover.name_zh
+                mover.sector_zh = self._normalize_chinese_category(
+                    str(item.get("sector_zh") or mover.sector_zh or mover.sector),
+                    fallback=self._translate_sector(mover.sector),
+                )
+                mover.industry_zh = self._normalize_chinese_category(
+                    str(item.get("industry_zh") or mover.industry_zh or mover.industry),
+                    fallback=self._translate_industry(mover.industry, mover.sector_zh),
+                )
+                mover.company_intro = self._normalize_chinese_text(
+                    str(item.get("company_intro") or mover.company_intro or ""),
+                    fallback=mover.company_intro or mover.business_summary or "",
+                )
+                mover.main_products = self._normalize_chinese_text(
+                    str(item.get("main_products") or mover.main_products or ""),
+                    fallback=mover.main_products or mover.business_summary or "",
+                )
+                mover.move_reason = self._normalize_chinese_text(
+                    str(item.get("move_reason") or mover.move_reason or ""),
+                    fallback=mover.move_reason or mover.catalyst or "",
+                )
                 self._apply_textual_fallbacks(mover)
 
     async def _generate_ai_insights(
@@ -709,10 +777,7 @@ class FinanceDigestRunner:
 
     @staticmethod
     def _search_public_context(symbol: str, name: str, market: str) -> list[str]:
-        queries = [
-            f"{symbol} {name} company products latest news",
-            f"{symbol} {name} {'Hong Kong' if market == 'hk' else 'US'} stock catalyst news",
-        ]
+        queries = [f"{symbol} {name} {'Hong Kong' if market == 'hk' else 'US'} stock latest news products"]
         snippets: list[str] = []
         stderr = sys.stderr
         sys.stderr = open(os.devnull, "w")
@@ -733,6 +798,16 @@ class FinanceDigestRunner:
             sys.stderr.close()
             sys.stderr = stderr
         return snippets[:4]
+
+    async def _get_public_context(self, symbol: str, name: str, market: str) -> list[str]:
+        async with self.search_semaphore:
+            try:
+                return await asyncio.wait_for(
+                    asyncio.to_thread(self._search_public_context, symbol, name, market),
+                    timeout=12,
+                )
+            except Exception:
+                return []
 
     def _apply_textual_fallbacks(self, mover: MarketMover) -> None:
         mover.sector_zh = self._translate_sector(mover.sector_zh or mover.sector)
@@ -764,6 +839,24 @@ class FinanceDigestRunner:
                 or "公开信息显示资金主要围绕相关业务主题与短线催化集中交易。"
             )
 
+        mover.sector_zh = self._normalize_chinese_category(mover.sector_zh, fallback=self._translate_sector(mover.sector))
+        mover.industry_zh = self._normalize_chinese_category(
+            mover.industry_zh,
+            fallback=self._translate_industry(mover.industry, mover.sector_zh),
+        )
+        mover.company_intro = self._normalize_chinese_text(
+            mover.company_intro or "",
+            fallback=f"{mover.name} 主营方向与 {mover.industry_zh or mover.sector_zh} 相关。",
+        )
+        mover.main_products = self._normalize_chinese_text(
+            mover.main_products or "",
+            fallback=f"公司主要产品与 {mover.industry_zh or mover.sector_zh} 业务相关。",
+        )
+        mover.move_reason = self._normalize_chinese_text(
+            mover.move_reason or "",
+            fallback="公开信息显示资金主要围绕相关业务主题与短线催化集中交易。",
+        )
+
     @staticmethod
     def _pick_context_sentence(sentences: list[str], keywords: list[str]) -> Optional[str]:
         lowered_keywords = [keyword.lower() for keyword in keywords]
@@ -772,6 +865,45 @@ class FinanceDigestRunner:
             if any(keyword in lowered for keyword in lowered_keywords):
                 return sentence[:140]
         return sentences[0][:140] if sentences else None
+
+    @staticmethod
+    def _contains_chinese(text: str) -> bool:
+        return bool(re.search(r"[\u4e00-\u9fff]", text or ""))
+
+    def _needs_chinese_rewrite(self, text: str) -> bool:
+        normalized = (text or "").strip()
+        if not normalized:
+            return True
+        if "未分类" in normalized or "待补充" in normalized:
+            return True
+        return not self._contains_chinese(normalized)
+
+    def _mover_needs_localization(self, mover: MarketMover) -> bool:
+        return any(
+            self._needs_chinese_rewrite(value)
+            for value in [
+                mover.sector_zh,
+                mover.industry_zh,
+                mover.company_intro,
+                mover.main_products,
+                mover.move_reason,
+            ]
+        )
+
+    def _normalize_chinese_category(self, text: str, fallback: str) -> str:
+        normalized = (text or "").strip()
+        if self._needs_chinese_rewrite(normalized):
+            return fallback.strip() or "科技"
+        return normalized
+
+    def _normalize_chinese_text(self, text: str, fallback: str) -> str:
+        normalized = (text or "").strip()
+        if self._needs_chinese_rewrite(normalized):
+            fallback_text = (fallback or "").strip()
+            if self._contains_chinese(fallback_text):
+                return fallback_text
+            return "公开信息显示公司业务与近期市场关注主题相关，资金围绕该方向集中交易。"
+        return normalized
 
     @staticmethod
     def _safe_int(value: Any) -> Optional[int]:

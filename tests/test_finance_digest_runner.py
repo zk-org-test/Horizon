@@ -54,5 +54,16 @@ def test_apply_textual_fallbacks_uses_summary_and_search_context():
     asyncio.run(runner.http_client.aclose())
 
     assert mover.company_intro
-    assert "launch" in mover.main_products.lower() or "satellite" in mover.main_products.lower()
+    assert mover.main_products
+    assert "公司主要产品" in mover.main_products or "公开信息显示" in mover.main_products or "相关" in mover.main_products
     assert mover.move_reason
+
+
+def test_needs_chinese_rewrite_flags_english_and_unclassified_content():
+    runner = FinanceDigestRunner(FinanceDigestConfig(enabled=True, top_n=5), Mock(), httpx.AsyncClient())
+
+    assert runner._needs_chinese_rewrite("This is an English sentence.")
+    assert runner._needs_chinese_rewrite("未分类")
+    assert not runner._needs_chinese_rewrite("这是一段中文总结。")
+
+    asyncio.run(runner.http_client.aclose())

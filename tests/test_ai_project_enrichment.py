@@ -43,3 +43,17 @@ def test_enrich_github_project_uses_repo_api_and_readme():
     assert "multimodal" in project.description.lower()
     assert "Artificial Intelligence" in project.topics
     assert project.research_context
+
+
+def test_needs_project_localization_flags_english_summary():
+    project = AIProject(
+        source="github_trending",
+        rank=1,
+        name="demo/repo",
+        description="",
+        url="https://github.com/demo/repo",
+        topics=["Artificial Intelligence"],
+        summary_zh="This is still English.",
+    )
+
+    assert AIDigestRunner._needs_project_localization(project)

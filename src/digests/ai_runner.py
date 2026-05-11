@@ -75,10 +75,11 @@ class AIProject:
     name_zh: Optional[str] = None
     why_cn: Optional[str] = None
     research_context: list[str] | None = None
+    topics_zh: list[str] | None = None
 
     def to_line(self) -> str:
         display_name = self.name if not self.name_zh else f"{self.name}（{self.name_zh}）"
-        zh_topics = [AI_TOPIC_ZH.get(topic, topic) for topic in self.topics[:3]]
+        zh_topics = self.topics_zh or [AI_TOPIC_ZH.get(topic, topic) for topic in self.topics[:3]]
         topic_part = f" | 主题：{', '.join(zh_topics)}" if zh_topics else ""
         metric = f" | 热度：{self.votes}" if self.votes is not None else ""
         summary = self.summary_zh or self.description
@@ -103,6 +104,7 @@ class AIDigestRunner:
         self.sources = sources
         self.ai_client = ai_client
         self.http_client = http_client
+        self.search_semaphore = asyncio.Semaphore(6)
 
     async def run(self, now: Optional[datetime] = None) -> dict[str, Any]:
         current = now or datetime.now(timezone.utc)
@@ -110,6 +112,7 @@ class AIDigestRunner:
         product_hunt_items = await self._fetch_product_hunt(current)
         await self._enrich_projects(github_items, product_hunt_items)
         await self._localize_projects(github_items + product_hunt_items)
+        await self._normalize_projects_to_chinese(github_items + product_hunt_items)
 
         all_items = github_items + product_hunt_items
         counts = Counter(item.category for item in all_items)
@@ -187,7 +190,7 @@ class AIDigestRunner:
             if readme:
                 project.research_context = (project.research_context or []) + [readme]
 
-        search_context = await asyncio.to_thread(self._search_public_context, project.name, "github")
+        search_context = await self._get_public_context(project.name, "github")
         if search_context:
             project.research_context = (project.research_context or []) + search_context
 
@@ -202,7 +205,7 @@ class AIDigestRunner:
         page_summary = await self._fetch_page_summary(project.url)
         if page_summary:
             project.research_context = (project.research_context or []) + [page_summary]
-        search_context = await asyncio.to_thread(self._search_public_context, project.name, "product_hunt")
+        search_context = await self._get_public_context(project.name, "product_hunt")
         if search_context:
             project.research_context = (project.research_context or []) + search_context
         project.category = classify_ai_category(
@@ -456,6 +459,64 @@ class AIDigestRunner:
                 category_zh = str(item.get("category_zh") or "").strip()
                 if category_zh:
                     project.category = zh_to_en.get(category_zh, project.category)
+                project.topics_zh = [AI_TOPIC_ZH.get(topic, topic) for topic in project.topics[:3]]
+
+    async def _normalize_projects_to_chinese(self, projects: list[AIProject]) -> None:
+        pending = [project for project in projects if self._needs_project_localization(project)]
+        if not pending:
+            return
+
+        zh_to_en = {value: key for key, value in AI_CATEGORY_ZH.items()}
+        for start in range(0, len(pending), 12):
+            batch = pending[start:start + 12]
+            payload = [
+                {
+                    "name": project.name,
+                    "name_zh_hint": project.name_zh,
+                    "category_zh_hint": project.category_zh,
+                    "summary_zh_hint": project.summary_zh,
+                    "topics_hint": project.topics_zh or [AI_TOPIC_ZH.get(topic, topic) for topic in project.topics[:3]],
+                    "research_context": (project.research_context or [])[:4],
+                }
+                for project in batch
+            ]
+            system = (
+                "你是一名中文科技媒体编辑。请把每个 AI 项目的名称别名、分类、主题和摘要统一改写成简洁自然的中文。"
+                "主题必须是 1-3 个中文短词，不要保留英文标签。输出严格 JSON。"
+            )
+            user = (
+                '返回 JSON：{"items":[{"name":"","name_zh":"","category_zh":"","topics_zh":[],"summary_zh":"","why_cn":""}]}\n'
+                f"项目列表：{payload}"
+            )
+            try:
+                response = await asyncio.wait_for(
+                    self.ai_client.complete(system=system, user=user, max_tokens=2600),
+                    timeout=30,
+                )
+                result = parse_json_response(response) or {}
+            except Exception:
+                result = {}
+
+            normalized_map = {str(item.get("name")): item for item in result.get("items", []) if item.get("name")}
+            for project in batch:
+                item = normalized_map.get(project.name, {})
+                project.name_zh = str(item.get("name_zh") or project.name_zh or "").strip() or project.name_zh
+                category_zh = str(item.get("category_zh") or "").strip()
+                if category_zh:
+                    project.category = zh_to_en.get(category_zh, project.category)
+                topics_zh = item.get("topics_zh")
+                if isinstance(topics_zh, list) and topics_zh:
+                    project.topics_zh = [str(topic).strip() for topic in topics_zh if str(topic).strip()]
+                project.summary_zh = self._normalize_chinese_project_text(
+                    str(item.get("summary_zh") or project.summary_zh or ""),
+                    fallback=self._fallback_project_summary(project),
+                )
+                project.why_cn = self._normalize_chinese_project_text(
+                    str(item.get("why_cn") or project.why_cn or ""),
+                    fallback=project.summary_zh,
+                )
+                if not project.topics_zh:
+                    project.topics_zh = self._fallback_topics_zh(project)
 
     @staticmethod
     def _infer_topics_from_repo(text: str) -> list[str]:
@@ -537,7 +598,7 @@ class AIDigestRunner:
     def _search_public_context(name: str, source: str) -> list[str]:
         import sys
 
-        query = f"{name} {'github project' if source == 'github' else 'product hunt ai product'}"
+        query = f"{name} {'github project latest summary' if source == 'github' else 'product hunt ai product summary'}"
         snippets: list[str] = []
         stderr = sys.stderr
         sys.stderr = open(os.devnull, "w")
@@ -557,8 +618,50 @@ class AIDigestRunner:
             sys.stderr = stderr
         return snippets[:3]
 
+    async def _get_public_context(self, name: str, source: str) -> list[str]:
+        async with self.search_semaphore:
+            try:
+                return await asyncio.wait_for(
+                    asyncio.to_thread(self._search_public_context, name, source),
+                    timeout=12,
+                )
+            except Exception:
+                return []
+
     @staticmethod
     def _fallback_project_summary(project: AIProject) -> str:
         topic_text = "、".join(AI_TOPIC_ZH.get(topic, topic) for topic in project.topics[:3]) or "AI工具"
         context = (project.research_context or [project.description])[0] if (project.research_context or project.description) else ""
         return f"该项目聚焦{topic_text}，当前最值得关注的是：{context[:120] or project.name}。"
+
+    @staticmethod
+    def _contains_chinese(text: str) -> bool:
+        import re
+
+        return bool(re.search(r"[\u4e00-\u9fff]", text or ""))
+
+    @classmethod
+    def _needs_project_localization(cls, project: AIProject) -> bool:
+        summary = (project.summary_zh or "").strip()
+        if not summary:
+            return True
+        if not cls._contains_chinese(summary):
+            return True
+        if any(not cls._contains_chinese(topic) for topic in (project.topics_zh or [])):
+            return True
+        return False
+
+    @classmethod
+    def _normalize_chinese_project_text(cls, text: str, fallback: str) -> str:
+        normalized = (text or "").strip()
+        if not normalized or not cls._contains_chinese(normalized):
+            fallback_text = (fallback or "").strip()
+            if cls._contains_chinese(fallback_text):
+                return fallback_text
+            return "该项目围绕 AI 工具链与工作流场景展开，近期在榜单中体现出较高关注度。"
+        return normalized
+
+    @staticmethod
+    def _fallback_topics_zh(project: AIProject) -> list[str]:
+        mapped = [AI_TOPIC_ZH.get(topic, topic) for topic in project.topics[:3]]
+        return [topic for topic in mapped if topic] or [AI_CATEGORY_ZH.get(project.category, "AI工具")]
