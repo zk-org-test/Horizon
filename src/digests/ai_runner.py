@@ -126,16 +126,16 @@ class AIProject:
     def to_group_block(self, rank: int) -> str:
         display_name = self.name if not self.name_zh else f"{self.name}（{self.name_zh}）"
         source_text = "GitHub" if self.source == "github_trending" else "Product Hunt"
-        capability = self._compact_text(self.capability_cn, 40, fallback="关键能力仍在补充。")
-        summary = self._compact_text(self.summary_zh or self.description, 44, fallback="项目简介仍在补充。")
-        why = self._compact_text(self.why_cn, 44, fallback=f"{display_name} 近期热度较高。")
-        judgment = self._compact_text(self.judgment_cn, 36, fallback=f"代表{self.category_zh}方向继续升温。")
+        capability = self._compact_text(self.capability_cn, 46, fallback="关键能力仍在补充。")
+        summary = self._compact_text(self.summary_zh or self.description, 52, fallback="项目简介仍在补充。")
+        why = self._compact_text(self.why_cn, 50, fallback=f"{display_name} 近期热度较高。")
+        judgment = self._compact_text(self.judgment_cn, 40, fallback=f"代表{self.category_zh}方向继续升温。")
         return (
-            f"{rank}. [{display_name}]({self.url}) | {source_text} #{self.rank}\n"
-            f"   项目定位：{summary}\n"
-            f"   核心能力：{capability}\n"
-            f"   看点：{why}\n"
-            f"   判断：{judgment}"
+            f"{rank}. [{display_name}]({self.url}) | {source_text} #{self.rank}"
+            f"<br>项目定位：{summary}"
+            f"<br>核心能力：{capability}"
+            f"<br>看点：{why}"
+            f"<br>判断：{judgment}"
         )
 
     @property
@@ -558,7 +558,7 @@ class AIDigestRunner:
             system = (
                 "你是一名双语 AI 产品分析师。请把项目摘要、核心能力、亮点判断、主题和分类全部转成自然中文，只返回 JSON。"
                 "输出必须以中文为主，保留仓库名或产品名原文作为标识，不要直接复制长段英文、页面标题或搜索结果标题。"
-                "项目定位不超过36字，核心能力不超过32字，看点不超过36字，判断不超过28字。"
+                "项目定位不超过44字，核心能力不超过36字，看点不超过42字，判断不超过32字。"
             )
             user = (
                 '返回 JSON：{"items":[{"name":"","name_zh":"","summary_zh":"","capability_cn":"","why_cn":"","judgment_cn":"","category_zh":"","topics_zh":[]}]}\n'

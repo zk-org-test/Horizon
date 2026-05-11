@@ -283,25 +283,25 @@ class MarketMover:
 
     def to_group_block(self, rank: int) -> str:
         subcategory = self.industry_zh or self.sector_zh or "未分类"
-        intro = self._compact_text(self.company_intro, 44, fallback="业务信息仍在补充。")
-        products = self._compact_text(self.main_products, 44, fallback="核心产品信息仍在补充。")
+        intro = self._compact_text(self.company_intro, 52, fallback="业务信息仍在补充。")
+        products = self._compact_text(self.main_products, 52, fallback="核心产品信息仍在补充。")
         raw_reason = re.sub(r"^(新闻线索显示|公开信息显示)[，,:：]?", "", (self.move_reason or self.catalyst or "")).strip()
         reason = self._compact_text(
             raw_reason,
-            52,
+            50,
             fallback="暂无明确单一催化，更像板块情绪与资金共振。",
         )
         judgment = self._compact_text(
             self.judgment,
-            44,
+            36,
             fallback="偏事件驱动，持续性还要看次日量能与跟风。",
         )
         return (
-            f"{rank}. {self.linked_symbol} {self.display_name} | {self.change_pct:+.2f}% | {subcategory}\n"
-            f"   主营：{intro}\n"
-            f"   核心产品：{products}\n"
-            f"   催化：{reason}\n"
-            f"   判断：{judgment}"
+            f"{rank}. {self.linked_symbol} {self.display_name} | {self.change_pct:+.2f}% | {subcategory}"
+            f"<br>主营：{intro}"
+            f"<br>核心产品：{products}"
+            f"<br>催化：{reason}"
+            f"<br>判断：{judgment}"
         )
 
     @staticmethod
@@ -699,7 +699,7 @@ class FinanceDigestRunner:
                 "中文一级分类、中文二级分类、公司一句话介绍、主要产品/业务、昨日上涨原因、以及一句交易判断。"
                 "输出严格 JSON，不要解释。尽量不要返回“未分类”、'待补充'、'未知' 这类占位词；"
                 "如果公开资料有限，也要基于业务摘要与新闻线索给出尽量具体的中文表述。"
-                "其中公司介绍不超过32字，产品介绍不超过32字，上涨原因不超过40字，交易判断不超过32字。"
+                "其中公司介绍不超过40字，产品介绍不超过40字，上涨原因不超过48字，交易判断不超过36字。"
             )
             user = (
                 '返回 JSON：{"items":[{"symbol":"", "name_zh":"", "sector_zh":"", "industry_zh":"", '
@@ -765,7 +765,7 @@ class FinanceDigestRunner:
                 "公司是做什么的、主要产品/服务是什么、这次上涨的具体原因是什么，以及一句交易判断。"
                 "禁止输出空话，例如“主营方向与X相关”“主要产品与X业务相关”“资金围绕题材交易”。"
                 "若缺乏明确催化，要明确写“暂无明确公司公告催化，更像板块/情绪驱动”，但仍要结合公司业务解释。"
-                "四段都要写成适合日报快读的短句：公司介绍不超过32字，产品介绍不超过32字，催化不超过40字，判断不超过32字。"
+                "四段都要写成适合日报快读的短句：公司介绍不超过40字，产品介绍不超过40字，催化不超过48字，判断不超过36字。"
                 "只返回 JSON。"
             )
             user = (
@@ -836,7 +836,7 @@ class FinanceDigestRunner:
             ]
             system = (
                 "你是一名中文财经快讯编辑。请把每只股票的4段信息压缩成适合日报快读的短句。"
-                "要求：公司介绍不超过32字，产品介绍不超过32字，催化不超过40字，判断不超过32字；"
+                "要求：公司介绍不超过40字，产品介绍不超过40字，催化不超过48字，判断不超过36字；"
                 "保持中文自然，不要省略核心信息，不要输出半句话，不要使用项目符号。"
                 "只返回 JSON。"
             )
