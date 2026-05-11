@@ -9,15 +9,15 @@ from collections import defaultdict
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, Optional
 
 import httpx
-from ddgs import DDGS
 
 from ..ai.client import AIClient
 from ..ai.utils import parse_json_response
 from ..models import FinanceDigestConfig
 from .summarizers import FinanceDigestSummary, FinanceSummarizer
+
 
 def _load_yfinance():
     try:
@@ -44,6 +44,45 @@ def _load_yfinance():
 yf = _load_yfinance()
 
 
+SECTOR_ZH_MAP = {
+    "Technology": "科技",
+    "Information Technology": "科技",
+    "Semiconductors": "半导体",
+    "Software": "软件",
+    "Data Infrastructure": "数据基础设施",
+    "IT Services": "IT服务",
+    "Energy": "能源",
+    "Energy Storage": "储能",
+    "Healthcare": "医疗健康",
+    "Financials": "金融",
+    "Capital Markets": "资本市场",
+    "Consumer": "消费",
+    "Consumer Cyclical": "可选消费",
+    "Consumer Defensive": "必选消费",
+    "Industrials": "工业",
+    "Materials": "材料",
+    "Real Estate": "房地产",
+    "Communication Services": "通信服务",
+    "Network Equipment": "网络设备",
+    "Internet Content & Information": "互联网平台",
+    "Aerospace & Defense": "航空航天",
+    "Solar": "光伏",
+    "Biotech": "生物科技",
+    "Banks": "银行",
+    "Hardware": "硬件",
+    "Electronics": "电子",
+    "Retail": "零售",
+    "Restaurants": "餐饮",
+    "Automobiles": "汽车",
+    "Luxury Goods": "奢侈品",
+    "Apparel": "服装",
+    "Consumer Electronics": "消费电子",
+    "Telecom Services": "电信服务",
+    "Internet Services": "互联网服务",
+    "Media": "媒体",
+}
+
+
 def get_previous_trading_day(current: datetime) -> datetime:
     """Return the most recent weekday before *current*."""
     previous = current - timedelta(days=1)
@@ -54,17 +93,38 @@ def get_previous_trading_day(current: datetime) -> datetime:
 
 def pick_strongest_group(movers: list[dict[str, Any]], key: str) -> str:
     """Pick the dominant group by count, then by average change."""
-    buckets: dict[str, list[float]] = defaultdict(list)
-    for mover in movers:
-        name = str(mover.get(key) or "未分类").strip()
-        buckets[name].append(float(mover.get("change_pct") or 0.0))
+    ranked = rank_heat_groups(movers, key, top_n=1)
+    return ranked[0]["label"] if ranked else "未分类"
 
-    ranked = sorted(
-        buckets.items(),
-        key=lambda item: (len(item[1]), sum(item[1]) / len(item[1])),
+
+def rank_heat_groups(movers: list[dict[str, Any]], key: str, top_n: int = 5) -> list[dict[str, Any]]:
+    """Rank groups by count, then average gain, then the top leader."""
+    buckets: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for mover in movers:
+        label = str(mover.get(key) or "未分类").strip()
+        buckets[label].append(mover)
+
+    ranked: list[dict[str, Any]] = []
+    for label, entries in buckets.items():
+        sorted_entries = sorted(entries, key=lambda item: float(item.get("change_pct") or 0.0), reverse=True)
+        avg_change = sum(float(item.get("change_pct") or 0.0) for item in entries) / len(entries)
+        leader = sorted_entries[0]
+        ranked.append(
+            {
+                "label": label,
+                "count": len(entries),
+                "avg_change": avg_change,
+                "leader_symbol": str(leader.get("symbol") or ""),
+                "leader_name": str(leader.get("display_name") or leader.get("name") or ""),
+                "leader_change": float(leader.get("change_pct") or 0.0),
+            }
+        )
+
+    ranked.sort(
+        key=lambda item: (item["count"], item["avg_change"], item["leader_change"]),
         reverse=True,
     )
-    return ranked[0][0] if ranked else "未分类"
+    return ranked[:top_n]
 
 
 @dataclass
@@ -73,22 +133,32 @@ class MarketMover:
     name: str
     market: str
     change_pct: float
+    name_zh: Optional[str] = None
     price: Optional[float] = None
     prev_close: Optional[float] = None
     sector: str = "未分类"
     industry: str = "未分类"
+    sector_zh: str = "未分类"
+    industry_zh: str = "未分类"
     volume: Optional[int] = None
     source_url: Optional[str] = None
     catalyst: Optional[str] = None
     news_headlines: list[str] | None = None
 
-    def to_line(self) -> str:
-        catalyst = f" | 催化：{self.catalyst}" if self.catalyst else ""
-        sector = self.sector or "未分类"
-        industry = self.industry or "未分类"
+    @property
+    def display_name(self) -> str:
+        if self.name_zh:
+            return f"{self.name}（{self.name_zh}）"
+        return self.name
+
+    def to_line(self, rank: int) -> str:
+        category = self.sector_zh or "未分类"
+        subcategory = self.industry_zh or "未分类"
+        category_text = category if category == subcategory else f"{category} / {subcategory}"
+        catalyst = f" | 触发：{self.catalyst}" if self.catalyst else ""
         return (
-            f"- `{self.symbol}` {self.name} {self.change_pct:+.2f}%"
-            f" | {sector} / {industry}{catalyst}"
+            f"{rank}. `{self.symbol}` {self.display_name} | {self.change_pct:+.2f}%"
+            f" | 分类：{category_text}{catalyst}"
         )
 
 
@@ -126,15 +196,15 @@ class FinancialDatasetsClient:
         payload = await self._get("/company/facts", ticker=ticker)
         return (payload or {}).get("company_facts") or {}
 
-    async def get_news(self, ticker: str, limit: int = 5) -> list[dict[str, Any]]:
+    async def get_news(self, ticker: str, limit: int = 3) -> list[dict[str, Any]]:
         payload = await self._get("/news", ticker=ticker, limit=limit)
         return (payload or {}).get("news") or []
 
-    async def get_earnings(self, ticker: str, limit: int = 3) -> list[dict[str, Any]]:
+    async def get_earnings(self, ticker: str, limit: int = 2) -> list[dict[str, Any]]:
         payload = await self._get("/earnings", ticker=ticker, limit=limit)
         return (payload or {}).get("earnings") or []
 
-    async def get_filings(self, ticker: str, limit: int = 3) -> list[dict[str, Any]]:
+    async def get_filings(self, ticker: str, limit: int = 2) -> list[dict[str, Any]]:
         payload = await self._get("/filings", ticker=ticker, limit=limit)
         return (payload or {}).get("filings") or []
 
@@ -161,45 +231,40 @@ class FinanceDigestRunner:
         trade_day = get_previous_trading_day(current)
 
         us_movers, hk_movers = await asyncio.gather(
-            asyncio.to_thread(
-                self._fetch_market_movers,
-                "us",
-                self.config.us_candidate_limit,
-                trade_day.date(),
-            ),
-            asyncio.to_thread(
-                self._fetch_market_movers,
-                "hk",
-                self.config.hk_candidate_limit,
-                trade_day.date(),
-            ),
+            asyncio.to_thread(self._fetch_market_movers, "us", self.config.us_candidate_limit),
+            asyncio.to_thread(self._fetch_market_movers, "hk", self.config.hk_candidate_limit),
         )
 
         us_top = us_movers[: self.config.top_n]
         hk_top = hk_movers[: self.config.top_n]
 
         await asyncio.gather(
-            *(self._enrich_mover(mover, fetch_public_news=False) for mover in us_top),
-            *(self._enrich_mover(mover, fetch_public_news=False) for mover in hk_top),
+            *(self._enrich_mover(mover) for mover in us_top),
+            *(self._enrich_mover(mover) for mover in hk_top),
         )
+        await self._ai_label_movers(us_top + hk_top)
 
         all_top = us_top + hk_top
-        strongest_sector = pick_strongest_group([asdict(item) for item in all_top], "sector")
-        strongest_industry = pick_strongest_group([asdict(item) for item in all_top], "industry")
+        strongest_sector = pick_strongest_group([asdict(item) for item in all_top], "sector_zh")
+        strongest_industry = pick_strongest_group([asdict(item) for item in all_top], "industry_zh")
         leader = self._pick_leader(all_top, strongest_sector)
+        heat_rankings = self._build_heat_ranking_lines(all_top)
+        overview_points = self._build_overview_points(us_top, hk_top, strongest_sector, leader)
         ai_insights = await self._generate_ai_insights(trade_day.date(), us_top, hk_top, strongest_sector, strongest_industry)
 
         confidence_note = ai_insights["confidence_note"]
         if not self.financial_client.enabled:
             confidence_note = (
-                confidence_note + " 当前未配置 Financial Datasets API Key，部分美股催化来自公开 Yahoo 数据。"
+                confidence_note + " 当前未配置 Financial Datasets API Key，分类与归因更多依赖模型推断。"
             ).strip()
 
         summary = FinanceDigestSummary(
             date=current.strftime("%Y-%m-%d"),
             market_summary=ai_insights["market_summary"],
-            us_top_movers=[item.to_line() for item in us_top],
-            hk_top_movers=[item.to_line() for item in hk_top],
+            overview_points=overview_points,
+            heat_rankings=heat_rankings,
+            us_top_movers=[item.to_line(index) for index, item in enumerate(us_top, start=1)],
+            hk_top_movers=[item.to_line(index) for index, item in enumerate(hk_top, start=1)],
             strongest_sector=strongest_sector,
             strongest_industry=strongest_industry,
             leader=leader,
@@ -216,7 +281,7 @@ class FinanceDigestRunner:
             "lang": self.config.language,
         }
 
-    def _fetch_market_movers(self, market: str, candidate_limit: int, trade_day: date) -> list[MarketMover]:
+    def _fetch_market_movers(self, market: str, candidate_limit: int) -> list[MarketMover]:
         if yf is None:
             raise RuntimeError("yfinance is required for finance digests. Run `uv sync` to install dependencies.")
 
@@ -232,47 +297,75 @@ class FinanceDigestRunner:
                     yf.EquityQuery("gte", ["intradayprice", 0.5]),
                 ],
             )
-            response = yf.screen(
-                query,
-                size=candidate_limit,
-                sortField="percentchange",
-                sortAsc=False,
-            )
+            response = yf.screen(query, size=candidate_limit, sortField="percentchange", sortAsc=False)
 
         quotes = self._extract_quotes(response)
-        quote_map = {
-            quote.get("symbol"): quote
-            for quote in quotes
-            if quote.get("symbol")
-            and str(quote.get("quoteType") or "").upper() == "EQUITY"
-            and str(quote.get("typeDisp") or "").lower() != "etf"
-        }
-
         movers: list[MarketMover] = []
-
-        for symbol, quote in quote_map.items():
+        for quote in quotes:
+            if not self._is_supported_equity_quote(quote):
+                continue
             change_pct = self._extract_float(quote.get("regularMarketChangePercent"))
             if change_pct is None:
                 continue
             movers.append(
                 MarketMover(
-                    symbol=symbol,
-                    name=str(
-                        quote.get("shortName")
-                        or quote.get("longName")
-                        or symbol
-                    ),
+                    symbol=str(quote.get("symbol")),
+                    name=str(quote.get("shortName") or quote.get("longName") or quote.get("symbol")),
                     market=market,
                     change_pct=change_pct,
                     price=self._extract_float(quote.get("regularMarketPrice")),
                     prev_close=self._extract_float(quote.get("regularMarketPreviousClose")),
                     volume=self._safe_int(quote.get("regularMarketVolume") or quote.get("dayVolume")),
-                    source_url=f"https://finance.yahoo.com/quote/{symbol}",
+                    source_url=f"https://finance.yahoo.com/quote/{quote.get('symbol')}",
                 )
             )
 
         movers.sort(key=lambda item: item.change_pct, reverse=True)
         return movers
+
+    @staticmethod
+    def _is_supported_equity_quote(quote: dict[str, Any]) -> bool:
+        symbol = str(quote.get("symbol") or "")
+        if not symbol:
+            return False
+        if str(quote.get("quoteType") or "").upper() != "EQUITY":
+            return False
+
+        if symbol.endswith(".HK"):
+            stem = symbol[:-3]
+            if stem.isdigit() and len(stem) > 4:
+                return False
+
+        type_disp = str(quote.get("typeDisp") or "").lower()
+        if type_disp in {"etf", "fund", "reit", "warrant", "cbbc"}:
+            return False
+
+        name_parts = [
+            str(quote.get("shortName") or ""),
+            str(quote.get("longName") or ""),
+            str(quote.get("displayName") or ""),
+            symbol,
+        ]
+        haystack = " ".join(name_parts).lower()
+        banned_terms = [
+            "认购",
+            "认沽",
+            "牛熊证",
+            "牛證",
+            "warrant",
+            "callable bull",
+            "callable bear",
+            "cbbc",
+            "inline",
+            "rights",
+        ]
+        if any(term in haystack for term in banned_terms):
+            return False
+
+        if symbol.endswith(".HK") and ("@" in haystack or symbol.replace(".HK", "") == (quote.get("shortName") or "")):
+            return False
+
+        return True
 
     @staticmethod
     def _extract_quotes(response: Any) -> list[dict[str, Any]]:
@@ -286,7 +379,7 @@ class FinanceDigestRunner:
                     return results[0].get("quotes") or []
         return []
 
-    async def _enrich_mover(self, mover: MarketMover, fetch_public_news: bool = False) -> None:
+    async def _enrich_mover(self, mover: MarketMover) -> None:
         if mover.market == "us" and self.financial_client.enabled:
             facts, news, earnings, filings = await asyncio.gather(
                 self.financial_client.get_company_facts(mover.symbol),
@@ -297,6 +390,8 @@ class FinanceDigestRunner:
             mover.name = str(facts.get("name") or mover.name)
             mover.sector = str(facts.get("sector") or facts.get("sic_sector") or mover.sector)
             mover.industry = str(facts.get("industry") or facts.get("sic_industry") or mover.industry)
+            mover.sector_zh = self._translate_sector(mover.sector)
+            mover.industry_zh = self._translate_industry(mover.industry, mover.sector_zh)
             headlines = [str(item.get("title")) for item in news if item.get("title")]
             if earnings:
                 headlines.insert(0, "近期有财报/业绩披露")
@@ -308,42 +403,51 @@ class FinanceDigestRunner:
 
         mover.sector = self._infer_sector_from_name(mover.name)
         mover.industry = self._infer_industry_from_name(mover.name, mover.sector)
-        if fetch_public_news:
-            try:
-                headlines = await asyncio.wait_for(
-                    asyncio.to_thread(self._fetch_public_news_headlines, mover),
-                    timeout=8,
-                )
-            except Exception:
-                headlines = []
-            mover.news_headlines = headlines[:3]
-            mover.catalyst = self._pick_catalyst(headlines[:3])
-        else:
-            mover.news_headlines = []
-            mover.catalyst = None
+        mover.sector_zh = self._translate_sector(mover.sector)
+        mover.industry_zh = self._translate_industry(mover.industry, mover.sector_zh)
+        mover.news_headlines = []
+        mover.catalyst = None
 
-    @staticmethod
-    def _fetch_public_news_headlines(mover: MarketMover) -> list[str]:
-        queries = [
-            f"{mover.name} stock",
-            f"{mover.symbol} stock news",
+    async def _ai_label_movers(self, movers: list[MarketMover]) -> None:
+        if not movers:
+            return
+
+        payload = [
+            {
+                "symbol": mover.symbol,
+                "market": mover.market,
+                "name_en": mover.name,
+                "sector_hint": mover.sector,
+                "industry_hint": mover.industry,
+            }
+            for mover in movers
         ]
-        if mover.market == "hk":
-            queries.insert(0, f"{mover.name} 港股")
-
-        headlines: list[str] = []
+        system = (
+            "你是一名中英双语金融研究员。请根据股票英文名和提示，为每只股票补充常用中文名、"
+            "中文一级分类和中文二级分类。输出严格 JSON，不要解释。尽量不要返回“未分类”。"
+        )
+        user = (
+            '返回 JSON：{"items":[{"symbol":"", "name_zh":"", "sector_zh":"", "industry_zh":""}]}\n'
+            f"股票列表：{payload}"
+        )
         try:
-            with DDGS() as ddgs:
-                for query in queries:
-                    for item in ddgs.news(query, max_results=3):
-                        title = item.get("title")
-                        if title and title not in headlines:
-                            headlines.append(str(title))
-                        if len(headlines) >= 3:
-                            return headlines
+            response = await asyncio.wait_for(
+                self.ai_client.complete(system=system, user=user, max_tokens=2200),
+                timeout=45,
+            )
+            result = parse_json_response(response) or {}
         except Exception:
-            pass
-        return headlines
+            result = {}
+
+        enriched_map = {str(item.get("symbol")): item for item in result.get("items", []) if item.get("symbol")}
+        for mover in movers:
+            item = enriched_map.get(mover.symbol, {})
+            mover.name_zh = str(item.get("name_zh") or mover.name_zh or "")
+            mover.sector_zh = self._translate_sector(str(item.get("sector_zh") or mover.sector_zh or mover.sector))
+            mover.industry_zh = self._translate_industry(
+                str(item.get("industry_zh") or mover.industry_zh or mover.industry),
+                mover.sector_zh,
+            )
 
     async def _generate_ai_insights(
         self,
@@ -355,19 +459,19 @@ class FinanceDigestRunner:
     ) -> dict[str, Any]:
         payload = {
             "trade_day": trade_day.isoformat(),
-            "us_top": [asdict(item) for item in us_top[:8]],
-            "hk_top": [asdict(item) for item in hk_top[:8]],
+            "us_top": [self._brief_payload(item) for item in us_top[:8]],
+            "hk_top": [self._brief_payload(item) for item in hk_top[:8]],
             "strongest_sector": strongest_sector,
             "strongest_industry": strongest_industry,
         }
         system = (
-            "你是一名金融晨会纪要分析师。请基于给定的涨幅榜、行业分类和新闻催化，"
-            "输出严格 JSON，不要输出额外解释。"
+            "你是一名金融晨会纪要分析师。请基于涨幅榜、板块结构和已有催化，输出严格 JSON，"
+            "要求结论清楚、中文表达直观。"
         )
         user = (
-            "请用中文输出以下 JSON 字段："
+            "请输出 JSON："
             '{"market_summary":"一句话总览","catalysts":["原因1","原因2","原因3"],'
-            '"trend_outlook":"后续趋势判断","confidence_note":"如果公开新闻不足，请明确提示"}\n\n'
+            '"trend_outlook":"后续趋势判断","confidence_note":"如信号不足请说明"}\n\n'
             f"数据：{payload}"
         )
         try:
@@ -400,44 +504,69 @@ class FinanceDigestRunner:
         avg_us = self._average_change(us_top[:5])
         avg_hk = self._average_change(hk_top[:5])
         leader = self._pick_leader(us_top + hk_top, strongest_sector)
-        catalysts = self._collect_top_catalysts(us_top + hk_top)
         return {
             "market_summary": (
-                f"昨日美股强于港股，最集中的方向是 {strongest_sector} / {strongest_industry}。"
+                f"昨日美股整体强于港股，热度集中在 {strongest_sector} / {strongest_industry}。"
                 if avg_us >= avg_hk
-                else f"昨日港股强于美股，最集中的方向是 {strongest_sector} / {strongest_industry}。"
+                else f"昨日港股整体强于美股，热度集中在 {strongest_sector} / {strongest_industry}。"
             ),
-            "catalysts": catalysts or ["公开新闻信号有限，主要仍是主题轮动与事件驱动。"],
+            "catalysts": [
+                "高弹性成长股集体走强，说明短线风险偏好明显回升。",
+                "上榜个股集中在科技、能源或题材股，更多体现交易型资金抱团。",
+                "公开公告与新闻信号不足，部分走势仍可能是事件驱动后的情绪放大。",
+            ],
             "trend_outlook": (
-                f"龙头 {leader} 带动的 {strongest_sector} 板块短线仍有延续可能，"
-                "但需要观察下一交易日是否有量能跟随。"
+                f"{strongest_sector} 方向短线仍可能延续，但更大概率出现“主线延续、个股分化”结构；"
+                "判断关键在于次日是否继续放量、龙头是否保持强势。"
             ),
-            "confidence_note": "公开新闻信号不足，结论主要基于涨幅榜结构与行业集中度。",
+            "confidence_note": f"当前总龙头是 {leader}，但公开新闻不足，结论主要基于榜单结构与涨幅分布。",
         }
+
+    def _build_heat_ranking_lines(self, movers: list[MarketMover]) -> list[str]:
+        ranking = rank_heat_groups(
+            [
+                {
+                    "sector_zh": mover.sector_zh,
+                    "change_pct": mover.change_pct,
+                    "symbol": mover.symbol,
+                    "display_name": mover.display_name,
+                }
+                for mover in movers
+            ],
+            "sector_zh",
+            top_n=5,
+        )
+        return [
+            (
+                f"{index}. {item['label']}：{item['count']} 家上榜，平均 {item['avg_change']:+.2f}% ，"
+                f"龙头 {item['leader_symbol']}（{item['leader_name']}）"
+            )
+            for index, item in enumerate(ranking, start=1)
+        ] or ["- 暂无热度排名"]
+
+    def _build_overview_points(
+        self,
+        us_top: list[MarketMover],
+        hk_top: list[MarketMover],
+        strongest_sector: str,
+        leader: str,
+    ) -> list[str]:
+        us_focus = pick_strongest_group([asdict(item) for item in us_top], "sector_zh")
+        hk_focus = pick_strongest_group([asdict(item) for item in hk_top], "sector_zh")
+        return [
+            f"美股主线：{us_focus}。",
+            f"港股主线：{hk_focus}。",
+            f"全市场热度最高方向：{strongest_sector}。",
+            f"当前总龙头：{leader}。",
+        ]
 
     @staticmethod
     def _pick_leader(movers: list[MarketMover], strongest_sector: str) -> str:
-        preferred = [item for item in movers if item.sector == strongest_sector] or movers
+        preferred = [item for item in movers if item.sector_zh == strongest_sector] or movers
         leader = max(preferred, key=lambda item: item.change_pct, default=None)
         if leader is None:
             return "暂无明显龙头"
-        return f"{leader.symbol} ({leader.name}, {leader.change_pct:+.2f}%)"
-
-    @staticmethod
-    def _collect_top_catalysts(movers: Iterable[MarketMover]) -> list[str]:
-        seen: set[str] = set()
-        catalysts: list[str] = []
-        for mover in movers:
-            if not mover.news_headlines:
-                continue
-            for headline in mover.news_headlines:
-                if headline in seen:
-                    continue
-                seen.add(headline)
-                catalysts.append(headline)
-                if len(catalysts) == 3:
-                    return catalysts
-        return catalysts
+        return f"{leader.symbol}（{leader.display_name}，{leader.change_pct:+.2f}%）"
 
     @staticmethod
     def _average_change(movers: list[MarketMover]) -> float:
@@ -451,6 +580,30 @@ class FinanceDigestRunner:
             if headline:
                 return headline
         return None
+
+    @staticmethod
+    def _translate_sector(sector: str) -> str:
+        normalized = sector.strip()
+        return SECTOR_ZH_MAP.get(normalized, normalized if normalized != "未分类" else "未分类")
+
+    @staticmethod
+    def _translate_industry(industry: str, sector_zh: str) -> str:
+        normalized = industry.strip()
+        if normalized == "未分类":
+            return sector_zh
+        return SECTOR_ZH_MAP.get(normalized, normalized)
+
+    @staticmethod
+    def _brief_payload(mover: MarketMover) -> dict[str, Any]:
+        return {
+            "symbol": mover.symbol,
+            "name": mover.name,
+            "name_zh": mover.name_zh,
+            "change_pct": mover.change_pct,
+            "sector_zh": mover.sector_zh,
+            "industry_zh": mover.industry_zh,
+            "catalyst": mover.catalyst,
+        }
 
     @staticmethod
     def _safe_int(value: Any) -> Optional[int]:
@@ -472,14 +625,15 @@ class FinanceDigestRunner:
     def _infer_sector_from_name(name: str) -> str:
         lowered = name.lower()
         sector_keywords = {
-            "Technology": ["tech", "software", "semi", "chip", "cloud", "ai", "internet", "digital"],
+            "Technology": ["tech", "software", "semi", "chip", "cloud", "ai", "internet", "digital", "data"],
             "Healthcare": ["pharma", "bio", "medical", "health", "hospital", "drug"],
             "Financials": ["bank", "financial", "insurance", "capital", "securities", "broker"],
-            "Energy": ["energy", "oil", "gas", "solar", "power", "coal"],
+            "Energy": ["energy", "oil", "gas", "solar", "power", "battery"],
             "Materials": ["mining", "metal", "steel", "lithium", "gold", "copper", "cement"],
-            "Consumer": ["retail", "food", "beverage", "auto", "motor", "consumer", "travel"],
-            "Industrials": ["shipping", "logistics", "air", "aerospace", "industrial", "machinery"],
+            "Consumer": ["retail", "food", "beverage", "auto", "motor", "consumer", "travel", "golf"],
+            "Industrials": ["shipping", "logistics", "air", "aerospace", "industrial", "machinery", "space"],
             "Real Estate": ["property", "real estate", "reit"],
+            "Communication Services": ["media", "communication", "telecom", "network"],
         }
         for sector, hints in sector_keywords.items():
             if any(hint in lowered for hint in hints):
@@ -490,17 +644,16 @@ class FinanceDigestRunner:
     def _infer_industry_from_name(name: str, sector: str) -> str:
         lowered = name.lower()
         if sector == "Technology":
-            if any(keyword in lowered for keyword in ["semi", "chip"]):
+            if any(keyword in lowered for keyword in ["semi", "chip", "micron", "maxlinear", "navitas", "synaptics"]):
                 return "Semiconductors"
-            if any(keyword in lowered for keyword in ["cloud", "software", "saas"]):
+            if any(keyword in lowered for keyword in ["cloud", "software", "dropbox", "akamai", "jfrog"]):
                 return "Software"
-        if sector == "Healthcare":
-            if "bio" in lowered:
-                return "Biotech"
-            if "medical" in lowered:
-                return "Medical Devices"
-        if sector == "Financials" and "bank" in lowered:
-            return "Banks"
-        if sector == "Energy" and "solar" in lowered:
-            return "Solar"
+            if any(keyword in lowered for keyword in ["data", "innodata"]):
+                return "Data Infrastructure"
+        if sector == "Industrials" and any(keyword in lowered for keyword in ["space", "rocket", "firefly", "redwire"]):
+            return "Aerospace & Defense"
+        if sector == "Energy" and any(keyword in lowered for keyword in ["fluence", "eos", "solar", "battery"]):
+            return "Energy Storage"
+        if sector == "Communication Services" and any(keyword in lowered for keyword in ["network", "telecom"]):
+            return "Network Equipment"
         return sector if sector != "未分类" else "未分类"

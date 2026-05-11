@@ -10,6 +10,8 @@ from typing import Any
 class FinanceDigestSummary:
     date: str
     market_summary: str
+    overview_points: list[str]
+    heat_rankings: list[str]
     us_top_movers: list[Any]
     hk_top_movers: list[Any]
     strongest_sector: str
@@ -38,22 +40,26 @@ class FinanceSummarizer:
         lines = [
             f"# 金融日报 | {summary.date}",
             "",
-            summary.market_summary,
+            f"> {summary.market_summary}",
             "",
-            "## 昨日美股 Top 20",
+            "## 先看结论",
             "",
         ]
-        lines.extend(self._render_movers(summary.us_top_movers))
-        lines.extend(["", "## 昨日港股 Top 20", ""])
-        lines.extend(self._render_movers(summary.hk_top_movers))
+        lines.extend([f"- {item}" for item in summary.overview_points] or ["- 暂无结论"])
+        lines.extend(["", "## 板块热度榜", ""])
+        lines.extend(summary.heat_rankings or ["- 暂无热度排名"])
+        lines.extend(["", "## 昨日美股 Top 20 焦点", ""])
+        lines.extend(self._render_lines(summary.us_top_movers))
+        lines.extend(["", "## 昨日港股 Top 20 焦点", ""])
+        lines.extend(self._render_lines(summary.hk_top_movers))
         lines.extend(
             [
                 "",
-                "## 最强板块与龙头",
+                "## 核心龙头",
                 "",
                 f"- 最强板块：{summary.strongest_sector}",
                 f"- 最强细分行业：{summary.strongest_industry}",
-                f"- 龙头：{self._render_leader(summary.leader)}",
+                f"- 总龙头：{self._render_leader(summary.leader)}",
                 "",
                 "## 上涨原因归因",
                 "",
@@ -64,24 +70,15 @@ class FinanceSummarizer:
         return "\n".join(lines).strip() + "\n"
 
     @staticmethod
-    def _render_movers(items: list[dict[str, Any]]) -> list[str]:
+    def _render_lines(items: list[Any]) -> list[str]:
         if not items:
             return ["- 暂无数据"]
-
-        rendered = []
+        rendered: list[str] = []
         for item in items:
             if isinstance(item, str):
                 rendered.append(item)
-                continue
-            rendered.append(
-                "- {name} ({symbol}) {change_pct}% | {sector} / {industry}".format(
-                    name=item.get("name", item.get("symbol", "未知标的")),
-                    symbol=item.get("symbol", ""),
-                    change_pct=item.get("change_pct", ""),
-                    sector=item.get("sector", "未知板块"),
-                    industry=item.get("industry", "未知行业"),
-                )
-            )
+            else:
+                rendered.append(str(item))
         return rendered
 
     @staticmethod
