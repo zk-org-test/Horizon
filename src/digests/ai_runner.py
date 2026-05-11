@@ -117,21 +117,25 @@ class AIProject:
     category: str = "Open Source"
     summary_zh: Optional[str] = None
     name_zh: Optional[str] = None
+    capability_cn: Optional[str] = None
     why_cn: Optional[str] = None
+    judgment_cn: Optional[str] = None
     research_context: list[str] | None = None
     topics_zh: list[str] | None = None
 
     def to_group_block(self, rank: int) -> str:
         display_name = self.name if not self.name_zh else f"{self.name}（{self.name_zh}）"
         source_text = "GitHub" if self.source == "github_trending" else "Product Hunt"
-        tags = "、".join((self.topics_zh or self._fallback_topics())[:3]) or self.category_zh
+        capability = self._compact_text(self.capability_cn, 40, fallback="关键能力仍在补充。")
         summary = self._compact_text(self.summary_zh or self.description, 44, fallback="项目简介仍在补充。")
-        why = self._compact_text(self.why_cn, 48, fallback=f"{display_name} 所在方向近期热度较高。")
+        why = self._compact_text(self.why_cn, 44, fallback=f"{display_name} 近期热度较高。")
+        judgment = self._compact_text(self.judgment_cn, 36, fallback=f"代表{self.category_zh}方向继续升温。")
         return (
             f"{rank}. [{display_name}]({self.url}) | {source_text} #{self.rank}\n"
-            f"   做什么：{summary}\n"
-            f"   标签：{tags}\n"
-            f"   看点：{why}"
+            f"   项目定位：{summary}\n"
+            f"   核心能力：{capability}\n"
+            f"   看点：{why}\n"
+            f"   判断：{judgment}"
         )
 
     @property
@@ -217,10 +221,15 @@ class AIDigestRunner:
             github_count = sum(1 for item in entries if item.source == "github_trending")
             product_hunt_count = len(entries) - github_count
             heading = f"{AI_CATEGORY_ZH.get(category, category)}（{len(entries)}个项目｜GitHub {github_count}｜PH {product_hunt_count}）"
+            detail_entries = entries[:3]
+            remaining_entries = entries[3:]
+            items = [entry.to_group_block(index) for index, entry in enumerate(detail_entries, start=1)]
+            if remaining_entries:
+                items.append(self._render_remaining_projects(remaining_entries))
             grouped.append(
                 {
                     "heading": heading,
-                    "items": [entry.to_group_block(index) for index, entry in enumerate(entries, start=1)],
+                    "items": items,
                 }
             )
         return grouped
@@ -231,6 +240,12 @@ class AIDigestRunner:
             heading = str(group.get("heading") or "未分类")
             lines.append(f"{index}. {heading}")
         return lines or ["- 暂无分类热度"]
+
+    @staticmethod
+    def _render_remaining_projects(projects: list[AIProject]) -> str:
+        preview = "；".join(project.name for project in projects[:4])
+        suffix = f" 等{len(projects)}个项目" if len(projects) > 4 else ""
+        return f"其余项目：{preview}{suffix}"
 
     @staticmethod
     def _category_sort_key(category: str, projects: list[AIProject]) -> tuple[int, float, float]:
@@ -541,11 +556,12 @@ class AIDigestRunner:
                 for project in batch
             ]
             system = (
-                "你是一名双语 AI 产品分析师。请把项目摘要、亮点、主题和分类全部转成自然中文，只返回 JSON。"
+                "你是一名双语 AI 产品分析师。请把项目摘要、核心能力、亮点判断、主题和分类全部转成自然中文，只返回 JSON。"
                 "输出必须以中文为主，保留仓库名或产品名原文作为标识，不要直接复制长段英文、页面标题或搜索结果标题。"
+                "项目定位不超过36字，核心能力不超过32字，看点不超过36字，判断不超过28字。"
             )
             user = (
-                '返回 JSON：{"items":[{"name":"","name_zh":"","summary_zh":"","why_cn":"","category_zh":"","topics_zh":[]}]}\n'
+                '返回 JSON：{"items":[{"name":"","name_zh":"","summary_zh":"","capability_cn":"","why_cn":"","judgment_cn":"","category_zh":"","topics_zh":[]}]}\n'
                 f"项目列表：{payload}"
             )
             try:
@@ -562,7 +578,9 @@ class AIDigestRunner:
                 item = localized_map.get(project.name, {})
                 project.name_zh = str(item.get("name_zh") or "").strip() or None
                 project.summary_zh = str(item.get("summary_zh") or "").strip() or self._fallback_project_summary(project)
+                project.capability_cn = str(item.get("capability_cn") or "").strip() or None
                 project.why_cn = str(item.get("why_cn") or "").strip() or None
+                project.judgment_cn = str(item.get("judgment_cn") or "").strip() or None
                 category_zh = str(item.get("category_zh") or "").strip()
                 if category_zh:
                     project.category = zh_to_en.get(category_zh, project.category)
@@ -579,9 +597,17 @@ class AIDigestRunner:
                     project.summary_zh,
                     fallback=self._fallback_project_summary(project),
                 )
+                project.capability_cn = self._normalize_chinese_project_text(
+                    project.capability_cn or "",
+                    fallback=self._fallback_project_capability(project),
+                )
                 project.why_cn = self._normalize_chinese_project_text(
                     project.why_cn or "",
-                    fallback=f"{project.name} 所在的{project.category_zh}方向近期热度较高。",
+                    fallback=self._fallback_project_why(project),
+                )
+                project.judgment_cn = self._normalize_chinese_project_text(
+                    project.judgment_cn or "",
+                    fallback=self._fallback_project_judgment(project),
                 )
 
     @staticmethod
@@ -705,6 +731,19 @@ class AIDigestRunner:
         category = AI_CATEGORY_ZH.get(project.category, project.category)
         source = "GitHub Trending" if project.source == "github_trending" else "Product Hunt"
         return f"{project.name} 是一个围绕{topic_text}的{category}项目，近期在 {source} 榜单中的关注度较高。"
+
+    @staticmethod
+    def _fallback_project_capability(project: AIProject) -> str:
+        return "、".join(AIDigestRunner._fallback_topics_zh(project)[:2]) or project.category_zh
+
+    @staticmethod
+    def _fallback_project_why(project: AIProject) -> str:
+        source = "GitHub" if project.source == "github_trending" else "Product Hunt"
+        return f"{project.name} 在 {source} 榜单靠前，说明方向有真实关注度。"
+
+    @staticmethod
+    def _fallback_project_judgment(project: AIProject) -> str:
+        return f"代表{project.category_zh}方向继续升温。"
 
     @staticmethod
     def _contains_chinese(text: str) -> bool:

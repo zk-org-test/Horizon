@@ -108,12 +108,12 @@ def test_apply_compact_fields_prefers_short_summary_over_raw_truncation():
     runner._apply_compact_fields(mover)
     asyncio.run(runner.http_client.aclose())
 
-    assert "…" not in mover.company_intro
-    assert "…" not in mover.main_products
-    assert "…" not in mover.move_reason
-    assert len(mover.company_intro) <= 32
-    assert len(mover.main_products) <= 32
-    assert len(mover.move_reason) <= 40
+    assert mover.company_intro.startswith("Innodata是一家数据工程与AI数据服务公司")
+    assert mover.main_products.startswith("数字数据解决方案")
+    assert mover.move_reason.startswith("公司公布创纪录季度业绩")
+    assert len(mover.company_intro) <= 40
+    assert len(mover.main_products) <= 40
+    assert len(mover.move_reason) <= 42
 
 
 def test_needs_chinese_rewrite_flags_english_and_unclassified_content():
@@ -138,7 +138,7 @@ def test_clean_external_snippet_removes_search_result_boilerplate():
 def test_ai_deepen_focus_movers_overrides_generic_fallback_text():
     ai_client = Mock()
     ai_client.complete = AsyncMock(
-        return_value='{"items":[{"symbol":"INOD","company_intro":"Innodata 是一家 AI 数据工程公司。","main_products":"AI 训练数据与媒体情报 SaaS。","move_reason":"创纪录业绩并上调指引推动上涨。"}]}'
+        return_value='{"items":[{"symbol":"INOD","company_intro":"Innodata 是一家 AI 数据工程公司。","main_products":"AI 训练数据与媒体情报 SaaS。","move_reason":"创纪录业绩并上调指引推动上涨。","judgment":"更像基本面兑现，不只是题材炒作。"}]}'
     )
     runner = FinanceDigestRunner(FinanceDigestConfig(enabled=True, top_n=5), ai_client, httpx.AsyncClient())
     mover = MarketMover(symbol="INOD", name="Innodata Inc", market="us", change_pct=85.75)
@@ -154,6 +154,7 @@ def test_ai_deepen_focus_movers_overrides_generic_fallback_text():
     assert mover.company_intro.startswith("Innodata 是一家 AI 数据工程公司")
     assert mover.main_products.startswith("AI 训练数据与媒体情报 SaaS")
     assert mover.move_reason.startswith("创纪录业绩并上调指引推动上涨")
+    assert mover.judgment.startswith("更像基本面兑现")
 
 
 def test_ai_label_movers_ignores_generic_ai_output_and_keeps_specific_fallbacks():

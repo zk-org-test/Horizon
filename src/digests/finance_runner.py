@@ -265,6 +265,7 @@ class MarketMover:
     company_intro: Optional[str] = None
     main_products: Optional[str] = None
     move_reason: Optional[str] = None
+    judgment: Optional[str] = None
     business_summary: Optional[str] = None
     search_context: list[str] | None = None
 
@@ -290,11 +291,17 @@ class MarketMover:
             52,
             fallback="暂无明确单一催化，更像板块情绪与资金共振。",
         )
+        judgment = self._compact_text(
+            self.judgment,
+            44,
+            fallback="偏事件驱动，持续性还要看次日量能与跟风。",
+        )
         return (
             f"{rank}. {self.linked_symbol} {self.display_name} | {self.change_pct:+.2f}% | {subcategory}\n"
-            f"   做什么：{intro}\n"
-            f"   产品：{products}\n"
-            f"   催化：{reason}"
+            f"   主营：{intro}\n"
+            f"   核心产品：{products}\n"
+            f"   催化：{reason}\n"
+            f"   判断：{judgment}"
         )
 
     @staticmethod
@@ -303,7 +310,7 @@ class MarketMover:
         if not normalized:
             return fallback
         normalized = normalized.rstrip("。；;,. ")
-        for separator in ["。", "；", ";", "！", "？", "：", ":", "，", "、"]:
+        for separator in ["。", "；", ";", "！", "？", "：", ":"]:
             if separator in normalized:
                 parts = [part.strip() for part in normalized.split(separator) if part.strip()]
                 if not parts:
@@ -486,19 +493,30 @@ class FinanceDigestRunner:
                 key=lambda item: item.change_pct,
                 reverse=True,
             )
+            detail_entries = entries[:3]
+            remaining_entries = entries[3:]
+            items = [entry.to_group_block(index) for index, entry in enumerate(detail_entries, start=1)]
+            if remaining_entries:
+                items.append(self._render_remaining_movers(remaining_entries))
             groups.append(
                 {
                     "heading": (
                         f"{label}（{ranked_group['count']}家｜平均 {ranked_group['avg_change']:+.2f}%｜"
                         f"龙头 {ranked_group['leader_symbol']}）"
                     ),
-                    "items": [entry.to_group_block(index) for index, entry in enumerate(entries, start=1)],
+                    "items": items,
                 }
             )
         return {
             "title": title,
             "groups": groups,
         }
+
+    @staticmethod
+    def _render_remaining_movers(movers: list[MarketMover]) -> str:
+        preview = "；".join(f"{mover.symbol} {mover.change_pct:+.2f}%" for mover in movers[:4])
+        suffix = f" 等{len(movers)}家" if len(movers) > 4 else ""
+        return f"其余上榜：{preview}{suffix}"
 
     def _fetch_market_movers(self, market: str, candidate_limit: int) -> list[MarketMover]:
         if yf is None:
@@ -678,14 +696,14 @@ class FinanceDigestRunner:
             ]
             system = (
                 "你是一名中英双语金融研究员。请根据股票英文名和提示，为每只股票补充常用中文名、"
-                "中文一级分类、中文二级分类、公司一句话介绍、主要产品/业务、以及昨日上涨原因。"
+                "中文一级分类、中文二级分类、公司一句话介绍、主要产品/业务、昨日上涨原因、以及一句交易判断。"
                 "输出严格 JSON，不要解释。尽量不要返回“未分类”、'待补充'、'未知' 这类占位词；"
                 "如果公开资料有限，也要基于业务摘要与新闻线索给出尽量具体的中文表述。"
-                "其中公司介绍不超过32字，产品介绍不超过32字，上涨原因不超过40字。"
+                "其中公司介绍不超过32字，产品介绍不超过32字，上涨原因不超过40字，交易判断不超过32字。"
             )
             user = (
                 '返回 JSON：{"items":[{"symbol":"", "name_zh":"", "sector_zh":"", "industry_zh":"", '
-                '"company_intro":"", "main_products":"", "move_reason":""}]}\n'
+                '"company_intro":"", "main_products":"", "move_reason":"", "judgment":""}]}\n'
                 f"股票列表：{payload}"
             )
             try:
@@ -715,12 +733,15 @@ class FinanceDigestRunner:
                 company_intro = str(item.get("company_intro") or "").strip()
                 main_products = str(item.get("main_products") or "").strip()
                 move_reason = str(item.get("move_reason") or "").strip()
+                judgment = str(item.get("judgment") or "").strip()
                 if company_intro and self._is_useful_cn_text(company_intro):
                     mover.company_intro = company_intro
                 if main_products and self._is_useful_cn_text(main_products):
                     mover.main_products = main_products
                 if move_reason and self._is_useful_cn_text(move_reason):
                     mover.move_reason = move_reason
+                if judgment and self._is_useful_cn_text(judgment):
+                    mover.judgment = judgment
                 self._apply_textual_fallbacks(mover)
 
     async def _ai_deepen_focus_movers(self, movers: list[MarketMover]) -> None:
@@ -741,14 +762,14 @@ class FinanceDigestRunner:
             }
             system = (
                 "你是一名中文卖方研究员。请基于公司业务摘要和新闻线索，为单只股票写出真正有信息量的三段内容："
-                "公司是做什么的、主要产品/服务是什么、这次上涨的具体原因是什么。"
+                "公司是做什么的、主要产品/服务是什么、这次上涨的具体原因是什么，以及一句交易判断。"
                 "禁止输出空话，例如“主营方向与X相关”“主要产品与X业务相关”“资金围绕题材交易”。"
                 "若缺乏明确催化，要明确写“暂无明确公司公告催化，更像板块/情绪驱动”，但仍要结合公司业务解释。"
-                "三段都要写成适合日报快读的短句：公司介绍不超过32字，产品介绍不超过32字，催化不超过40字。"
+                "四段都要写成适合日报快读的短句：公司介绍不超过32字，产品介绍不超过32字，催化不超过40字，判断不超过32字。"
                 "只返回 JSON。"
             )
             user = (
-                '返回 JSON：{"symbol":"","company_intro":"","main_products":"","move_reason":"","sector_zh":"","industry_zh":"","name_zh":""}\n'
+                '返回 JSON：{"symbol":"","company_intro":"","main_products":"","move_reason":"","judgment":"","sector_zh":"","industry_zh":"","name_zh":""}\n'
                 f"股票信息：{payload}"
             )
             try:
@@ -771,12 +792,15 @@ class FinanceDigestRunner:
             company_intro = str(item.get("company_intro") or "").strip()
             main_products = str(item.get("main_products") or "").strip()
             move_reason = str(item.get("move_reason") or "").strip()
+            judgment = str(item.get("judgment") or "").strip()
             if company_intro and self._is_useful_cn_text(company_intro):
                 mover.company_intro = company_intro
             if main_products and self._is_useful_cn_text(main_products):
                 mover.main_products = main_products
             if move_reason and self._is_useful_cn_text(move_reason):
                 mover.move_reason = move_reason
+            if judgment and self._is_useful_cn_text(judgment):
+                mover.judgment = judgment
             if item.get("name_zh"):
                 mover.name_zh = str(item.get("name_zh")).strip() or mover.name_zh
             if item.get("sector_zh"):
@@ -806,17 +830,18 @@ class FinanceDigestRunner:
                     "company_intro": mover.company_intro,
                     "main_products": mover.main_products,
                     "move_reason": mover.move_reason,
+                    "judgment": mover.judgment,
                 }
                 for mover in batch
             ]
             system = (
-                "你是一名中文财经快讯编辑。请把每只股票的3段信息压缩成适合日报快读的短句。"
-                "要求：公司介绍不超过32字，产品介绍不超过32字，催化不超过40字；"
+                "你是一名中文财经快讯编辑。请把每只股票的4段信息压缩成适合日报快读的短句。"
+                "要求：公司介绍不超过32字，产品介绍不超过32字，催化不超过40字，判断不超过32字；"
                 "保持中文自然，不要省略核心信息，不要输出半句话，不要使用项目符号。"
                 "只返回 JSON。"
             )
             user = (
-                '返回 JSON：{"items":[{"symbol":"","company_intro":"","main_products":"","move_reason":""}]}\n'
+                '返回 JSON：{"items":[{"symbol":"","company_intro":"","main_products":"","move_reason":"","judgment":""}]}\n'
                 f"股票列表：{payload}"
             )
             try:
@@ -838,12 +863,15 @@ class FinanceDigestRunner:
                 company_intro = str(item.get("company_intro") or "").strip()
                 main_products = str(item.get("main_products") or "").strip()
                 move_reason = str(item.get("move_reason") or "").strip()
+                judgment = str(item.get("judgment") or "").strip()
                 if company_intro and self._is_useful_cn_text(company_intro):
                     mover.company_intro = company_intro
                 if main_products and self._is_useful_cn_text(main_products):
                     mover.main_products = main_products
                 if move_reason and self._is_useful_cn_text(move_reason):
                     mover.move_reason = move_reason
+                if judgment and self._is_useful_cn_text(judgment):
+                    mover.judgment = judgment
                 self._apply_compact_fields(mover)
 
     async def _generate_ai_insights(
@@ -1018,6 +1046,7 @@ class FinanceDigestRunner:
             "company_intro": mover.company_intro,
             "main_products": mover.main_products,
             "move_reason": mover.move_reason,
+            "judgment": mover.judgment,
         }
 
     @staticmethod
@@ -1241,24 +1270,33 @@ class FinanceDigestRunner:
             mover.move_reason or "",
             fallback=specific_reason,
         )
+        mover.judgment = self._normalize_chinese_text(
+            mover.judgment or "",
+            fallback=self._build_judgment(mover),
+        )
         self._apply_compact_fields(mover)
 
     def _apply_compact_fields(self, mover: MarketMover) -> None:
         mover.company_intro = MarketMover._compact_text(
             mover.company_intro,
-            32,
+            40,
             fallback="业务信息仍在补充。",
         )
         mover.main_products = MarketMover._compact_text(
             mover.main_products,
-            32,
+            40,
             fallback="核心产品信息仍在补充。",
         )
         move_reason = re.sub(r"^(新闻线索显示|公开信息显示)[，,:：]?", "", (mover.move_reason or mover.catalyst or "")).strip()
         mover.move_reason = MarketMover._compact_text(
             move_reason,
-            40,
+            42,
             fallback="暂无明确单一催化，更像板块情绪与资金共振。",
+        )
+        mover.judgment = MarketMover._compact_text(
+            mover.judgment,
+            32,
+            fallback=self._build_judgment(mover),
         )
 
     def _build_company_intro(self, mover: MarketMover, sentences: list[str]) -> str:
@@ -1306,6 +1344,16 @@ class FinanceDigestRunner:
                 return translated
 
         return f"公开新闻里没有发现明确公司级催化，走势更像{mover.sector_zh or mover.industry_zh}板块情绪或资金驱动。"
+
+    def _build_judgment(self, mover: MarketMover) -> str:
+        reason = (mover.move_reason or mover.catalyst or "").lower()
+        if any(keyword in reason for keyword in ["业绩", "指引", "盈利", "营收"]):
+            return "更像基本面兑现，不只是题材炒作。"
+        if any(keyword in reason for keyword in ["订单", "合同", "合作"]):
+            return "订单催化明确，后续要看持续落地。"
+        if any(keyword in reason for keyword in ["审批", "监管", "产品", "项目"]):
+            return "偏事件驱动，持续性要看后续公告。"
+        return "更偏情绪驱动，持续性要看量能与跟风。"
 
     @staticmethod
     def _trim_business_phrase(text: str) -> str:
