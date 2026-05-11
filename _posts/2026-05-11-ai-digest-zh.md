@@ -25,35 +25,34 @@ kind: ai
 
 ## Product Hunt Top 20
 
-- #1 [Tailgrids 3.0](https://www.producthunt.com/products/tailgrids)：Open-source React UI library for Tailwind and AI Workflow Discussion | Link | 主题：Artificial Intelligence
-- #2 [InvestorFinder](https://www.producthunt.com/products/investorfinder)：Find investors who've backed founders just like you Discussion | Link
-- #3 [Notion 3.4](https://www.producthunt.com/products/notion-3-4)：New dashboards, connectors, sidebar & smarter AI agents Discussion | Link | 主题：Artificial Intelligence
-- #4 [Better Sol](https://www.producthunt.com/products/better-sol)：Develop Solana applications end-to-end using TypeScript Discussion | Link
-- #5 [LumiChats Offline(free)](https://www.producthunt.com/products/lumichats-offline)：Your AI, fully offline with Zero data collection & 100% free Discussion | Link | 主题：Artificial Intelligence, Data
-- #6 [AgentPeek](https://www.producthunt.com/products/agentpeek)：Claude Code and Codex in your Mac notch Discussion | Link
-- #7 [Keel](https://www.producthunt.com/products/keel-3)：An AI assistant whose memory belongs to you Discussion | Link | 主题：Artificial Intelligence
-- #8 [Adject 2.0](https://www.producthunt.com/products/adject)：Create hyperrealistic product visuals with AI Discussion | Link | 主题：Artificial Intelligence
-- #9 [deepsec](https://www.producthunt.com/products/vercel)：Open-source coding security harness Discussion | Link | 主题：Developer Tools
-- #10 [Glowix](https://www.producthunt.com/products/glowix)：Keep your Mac display awake exactly when you need it Discussion | Link
-- #11 [MolmoAct 2](https://www.producthunt.com/products/allen-institute-of-artificial-intelligence)：Open robotics model that reasons in 3D before acting Discussion | Link | 主题：Artificial Intelligence
-- #12 [BugDrop](https://www.producthunt.com/products/bugdrop-2)：In-app feedback that creates GitHub Issues with screenshots Discussion | Link
-- #13 [Nylas CLI](https://www.producthunt.com/products/nylas)：Email, calendar, and contacts for AI agents Discussion | Link | 主题：Artificial Intelligence
-- #14 [Codex in Chrome](https://www.producthunt.com/products/openai)：Let Codex navigate and automate tasks in your browser Discussion | Link
-- #15 [Manuscripts.app](https://www.producthunt.com/products/manuscripts-app)：For academics who have outgrown the spreadsheet tracker Discussion | Link
-- #16 [Prism](https://www.producthunt.com/products/prism-26)：Hire the best candidates, not just the available Discussion | Link | 主题：Artificial Intelligence
-- #17 [Omi A11Y](https://www.producthunt.com/products/omi-a11y-accessibility-scanner)：Web Accessibility Scanner Extension Discussion | Link
-- #18 [Ghost](https://www.producthunt.com/products/ghost-8)：Open-source, self-hosted game servers Discussion | Link
-- #19 [Staff.rip](https://www.producthunt.com/products/staff-rip)：Describe a code change in plain language and ship it Discussion | Link | 主题：Artificial Intelligence
-- #20 [How AI-pilled are you?](https://www.producthunt.com/products/how-ai-pilled-are-you)：Curious how AI-fluent your organization is? Discussion | Link | 主题：Artificial Intelligence
+- #1 [Tailgrids 3.0](https://www.producthunt.com/products/tailgrids?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Open-source React UI library for Tailwind and AI Workflow | 主题：Design Tools, Open Source, Developer Tools | 热度：282
+- #2 [InvestorFinder](https://www.producthunt.com/products/investorfinder?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Find investors who've backed founders just like you | 主题：Investing, Venture Capital, Tech | 热度：236
+- #3 [deepsec](https://www.producthunt.com/products/vercel?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Open-source coding security harness | 主题：Open Source, Developer Tools, GitHub | 热度：213
+- #4 [Adject 2.0](https://www.producthunt.com/products/adject?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Create hyperrealistic product visuals with AI | 主题：Design Tools, Artificial Intelligence, E-Commerce | 热度：170
+- #5 [Notion 3.4](https://www.producthunt.com/products/notion-3-4?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：New dashboards, connectors, sidebar & smarter AI agents | 主题：Productivity, Artificial Intelligence, Notion | 热度：147
+- #6 [AgentPeek](https://www.producthunt.com/products/agentpeek?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Claude Code and Codex in your Mac notch | 主题：Developer Tools, Artificial Intelligence, Menu Bar Apps | 热度：132
+- #7 [LumiChats Offline(free)](https://www.producthunt.com/products/lumichats-offline?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Your AI, fully offline with Zero data collection & 100% free | 主题：Open Source, Privacy, YC Application | 热度：116
+- #8 [Keel](https://www.producthunt.com/products/keel-3?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：An AI assistant whose memory belongs to you | 主题：Artificial Intelligence, GitHub, Virtual Assistants | 热度：113
+- #9 [Better Sol](https://www.producthunt.com/products/better-sol?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Develop Solana applications end-to-end using TypeScript | 主题：Open Source, GitHub, Web3 | 热度：55
+- #10 [ReelFluent Web](https://www.producthunt.com/products/reelfluent?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Reels, but for language learning | 主题：Education, Languages, Entertainment | 热度：15
+- #11 [Atlasly](https://www.producthunt.com/products/atlasly?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：AI agents for architecture | 主题：Design Tools, Maps, YC Application | 热度：10
+- #12 [TheStatsAPI](https://www.producthunt.com/products/thestatsapi?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：The Football Stats API Built for Speed | 主题：API, Sports, Football | 热度：9
+- #13 [iGreet](https://www.producthunt.com/products/igreet?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Personalized video greeting cards that come alive | 主题：Augmented Reality, Family | 热度：9
+- #14 [PrimeCompass.ai](https://www.producthunt.com/products/primecompass-ai?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：AI-Powered quality intelligence from live application | 主题：A/B Testing, Software Engineering, Artificial Intelligence | 热度：8
+- #15 [Pro Thumbnail Inspirations](https://www.producthunt.com/products/thumblifyai?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Viral thumbnail ideas from your niche | 主题：Design Tools, Artificial Intelligence, YouTube | 热度：8
+- #16 [Cohesivity](https://www.producthunt.com/products/cohesivity?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Backend Infra for AI agents | 主题：API, Developer Tools, Vibe coding | 热度：8
+- #17 [Screen Bolt](https://www.producthunt.com/products/screen-bolt?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Record. Edit. Ship | 主题：Design Tools, Marketing | 热度：8
+- #18 [DESIGN.MD by Parallect](https://www.producthunt.com/products/design-md-by-parallect?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Generate DESIGN.md from any website URL | 主题：Design Tools, Developer Tools, Artificial Intelligence | 热度：6
+- #19 [Agent Memory System](https://www.producthunt.com/products/agent-memory-system?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Open Source Context Infrastructure for AI Agents | 主题：Developer Tools, Artificial Intelligence, GitHub | 热度：6
+- #20 [GoHighLevel Downloader](https://www.producthunt.com/products/gohighlevel-downloader?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29)：Save GoHighLevel course videos offline | 主题：Chrome Extensions, Productivity, GitHub | 热度：6
 
 ## 分类概览
 
-- Agent: 14 个项目
-- Open Source: 12 个项目
-- DevTool: 2 个项目
+- Agent: 15 个项目
+- Design: 7 个项目
+- Open Source: 5 个项目
+- DevTool: 3 个项目
 - Data: 2 个项目
-- Design: 1 个项目
-- Infra: 1 个项目
 
 ## 值得关注的项目
 
