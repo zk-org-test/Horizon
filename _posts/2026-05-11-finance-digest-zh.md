@@ -6,229 +6,229 @@ lang: zh
 kind: finance
 ---
 
-> 5月8日美港两地涨幅集中在信息技术主线，业绩超预期+AI/云计算催化带动软件与数据工程领涨，叠加航天军工订单与在手订单放量推升景气预期。
+> 美股由“AI数据/云安全+航天军工+储能”三线共振带动强弹，港股涨幅榜则以信息技术（机器人/云服务/通信设备）领涨、叠加汽车零部件与消费修复的结构性行情。
 
 ## 先看结论
 
 - 美股主线：信息技术。
 - 港股主线：信息技术。
 - 全市场热度最高方向：信息技术。
-- 当前总龙头：1236.HK（Shenzhen Ldrobot Co., Ltd（深圳乐动机器人），+125.15%）。
+- 当前总龙头：1236.HK（Shenzhen Ldrobot Co., Ltd（凌度智能机器人），+128.76%）。
 
 ## 板块热度榜
 
-1. 信息技术：19 家上榜，平均 +32.73% ，龙头 1236.HK（Shenzhen Ldrobot Co., Ltd（深圳乐动机器人））
-   热点原因：涨幅榜占比最高且由“业绩兑现+AI落地”双轮驱动：INOD记录业绩引爆AI训练数据服务，AKAM披露AI云大单并营收超预期，FROG业绩与指引双超预期；港股侧云计算/数智化/科技服务与机器人感知（激光雷达）同步走强，形成跨市场共振。
-2. 工业：8 家上榜，平均 +24.73% ，龙头 RKLB（Rocket Lab Corp（火箭实验室））
-3. 可选消费：5 家上榜，平均 +33.58% ，龙头 2339.HK（BWI INT'L（京西国际））
-4. 必需消费：3 家上榜，平均 +19.56% ，龙头 2226.HK（HONWORLD GP（老恒和酿造））
-5. 医药生物：1 家上榜，平均 +37.63% ，龙头 2591.HK（INNOGEN-B（英诺金药业-B））
+1. 信息技术：17 家上榜，平均 +33.82% ，龙头 1236.HK（Shenzhen Ldrobot Co., Ltd（凌度智能机器人））
+   热点原因：涨幅榜覆盖面最广且催化最“硬”：美股端多家IT公司以财报超预期、AI云大单、回购计划、新品预期直接驱动（INOD/AKAM/FROG/MXL）；港股端机器人+云服务/系统集成+通信设备多点开花（1236.HK/0465.HK/1087.HK/0482.HK），形成跨市场同向共振，因此热度最高、资金聚集效应最强。
+2. 工业：9 家上榜，平均 +23.54% ，龙头 RKLB（Rocket Lab Corp（火箭实验室））
+3. 可选消费：6 家上榜，平均 +30.08% ，龙头 2339.HK（BWI INT'L（京西国际））
+4. 必需消费：2 家上榜，平均 +20.43% ，龙头 8160.HK（GOLDWAY EDU（金汇教育集团））
+5. 医疗保健：1 家上榜，平均 +32.17% ，龙头 2591.HK（INNOGEN-B（英诺健医药-B））
 
 ## 美股分类看板
 
 ### 信息技术（11家｜平均 +24.74%｜龙头 INOD）
-1. [`INOD`](https://finance.yahoo.com/quote/INOD) Innodata Inc（英诺数据） | +85.75% | IT服务
-   做什么：AI数据工程与行业软件平台商
+1. [`INOD`](https://finance.yahoo.com/quote/INOD) Innodata Inc（Innodata公司） | +85.75% | IT服务与数据工程
+   做什么：为大模型提供数据工程与AI训练服务
    产品：AI训练数据服务
-   催化：季度业绩创纪录
-2. [`AKAM`](https://finance.yahoo.com/quote/AKAM) Akamai Technologies Inc（阿卡迈科技） | +26.58% | 软件
-   做什么：CDN安全与边缘云平台提供商
-   产品：边缘云与安全服务
-   催化：营收超预期
-3. [`FROG`](https://finance.yahoo.com/quote/FROG) Jfrog Ltd（JFrog） | +23.73% | 软件
-   做什么：软件供应链与制品管理平台商
+   催化：财报大幅超预期并上调业绩指引
+2. [`AKAM`](https://finance.yahoo.com/quote/AKAM) Akamai Technologies Inc（阿卡迈科技） | +26.58% | 网络安全与云服务
+   做什么：提供边缘云与网络安全服务
+   产品：CDN加速与边缘云
+   催化：营收超预期并披露18亿美元AI云大单
+3. [`FROG`](https://finance.yahoo.com/quote/FROG) Jfrog Ltd（JFrog） | +23.73% | 软件开发工具与DevOps
+   做什么：提供软件供应链与制品库平台
    产品：Artifactory制品库平台
-   催化：业绩与业绩指引均超预期
-4. [`MXL`](https://finance.yahoo.com/quote/MXL) Maxlinear Inc（迈斯凌） | +21.20% | 半导体与半导体设备
-   做什么：通信SoC与高速连接芯片供应商
-   产品：宽带与光模块芯片
-   催化：AI推理存储加速平台亮相带动关注
-5. [`NSIT`](https://finance.yahoo.com/quote/NSIT) Insight Enterprises Inc（英赛特企业） | +19.07% | IT分销与解决方案服务
-   做什么：企业IT采购与解决方案服务商
-   产品：软硬件分销与集成服务
-   催化：Q1利润率改善带动业绩超预期
-6. [`SYNA`](https://finance.yahoo.com/quote/SYNA) Synaptics Inc（新思科技（Synaptics）） | +18.55% | 半导体
+   催化：Q1业绩与指引超预期
+4. [`MXL`](https://finance.yahoo.com/quote/MXL) Maxlinear Inc（迈凌） | +21.20% | 半导体
+   做什么：通信SoC与混合信号芯片厂商
+   产品：宽带
+   催化：AI推理与存储加速新品曝光
+5. [`NSIT`](https://finance.yahoo.com/quote/NSIT) Insight Enterprises Inc（英思特企业） | +19.07% | IT分销与服务
+   做什么：企业IT硬软与云服务集成商
+   产品：IT采购部署与云服务集成
+   催化：Q1盈利超预期且毛利提升
+6. [`SYNA`](https://finance.yahoo.com/quote/SYNA) Synaptics Inc（新思科技（Synaptics）） | +18.55% | 半导体与半导体设备
    做什么：人机交互与连接芯片供应商
-   产品：触控与显示相关芯片方案
-   催化：Q3收入保持双位数增长
-7. [`SNDK`](https://finance.yahoo.com/quote/SNDK) Sandisk Corp（闪迪） | +16.60% | 存储半导体
-   做什么：NAND闪存与存储解决方案厂商
-   产品：SSD及相关存储产品
-   催化：AI存储景气预期升温
-8. [`MU`](https://finance.yahoo.com/quote/MU) Micron Technology Inc（美光科技） | +15.51% | 存储半导体
-   做什么：DRAM与NAND存储芯片制造商
-   产品：HBM与DRAM存储芯片
-   催化：AI拉动HBM与存储涨价预期
-9. [`NVTS`](https://finance.yahoo.com/quote/NVTS) Navitas Semiconductor Corp（纳微半导体） | +15.26% | 功率半导体
-   做什么：GaN与SiC功率器件厂商
-   产品：氮化镓电源管理IC
-   催化：AI数据中心电源需求升温
-10. [`DBX`](https://finance.yahoo.com/quote/DBX) Dropbox Inc（多邻云（Dropbox）） | +15.00% | 应用软件
-   做什么：云存储与内容协作平台
-   产品：Dropbox云存储订阅服务
-   催化：上调2026年业绩展望
-11. [`ASTS`](https://finance.yahoo.com/quote/ASTS) Ast Spacemobile Inc（AST SpaceMobile） | +14.85% | 通信设备
+   产品：触控与显示接口芯片
+   催化：Q3营收保持连续高增长
+7. [`SNDK`](https://finance.yahoo.com/quote/SNDK) Sandisk Corp（闪迪） | +16.60% | 半导体与半导体设备
+   做什么：NAND闪存与存储方案厂商
+   产品：SSD及存储解决方案
+   催化：AI需求带动存储景气预期升温
+8. [`MU`](https://finance.yahoo.com/quote/MU) Micron Technology Inc（美光科技） | +15.51% | 半导体与半导体设备
+   做什么：DRAM与NAND存储芯片龙头
+   产品：DRAM内存与相关产品
+   催化：AI带动内存周期向上预期升温
+9. [`NVTS`](https://finance.yahoo.com/quote/NVTS) Navitas Semiconductor Corp（纳微半导体） | +15.26% | 半导体与半导体设备
+   做什么：氮化镓与碳化硅功率芯片厂商
+   产品：GaN功率IC与电源方案
+   催化：数据中心AI电源需求升温
+10. [`DBX`](https://finance.yahoo.com/quote/DBX) Dropbox Inc（Dropbox（多宝箱/云端硬盘）） | +15.00% | 应用软件
+   做什么：提供云存储与内容协作平台
+   产品：Dropbox云盘服务
+   催化：Q1业绩超预期
+11. [`ASTS`](https://finance.yahoo.com/quote/ASTS) Ast Spacemobile Inc（AST SpaceMobile（AST太空移动）） | +14.85% | 通信设备与卫星通信
    做什么：建设直连手机的卫星蜂窝网络
-   产品：BlueBird卫星及SpaceMobile服务
-   催化：FCC批准其248颗卫星星座部署
+   产品：BlueBird低轨通信卫星
+   催化：FCC批准部署248颗卫星星座
 
 ### 工业（6家｜平均 +24.02%｜龙头 RKLB）
 1. [`RKLB`](https://finance.yahoo.com/quote/RKLB) Rocket Lab Corp（火箭实验室） | +34.44% | 航天航空与国防
-   做什么：小型火箭发射与航天系统供应商
+   做什么：提供小型火箭发射与航天系统方案
    产品：Electron火箭发射服务
-   催化：Q1营收与利润双双超预期
-2. [`EOSE`](https://finance.yahoo.com/quote/EOSE) Eos Energy Enterprises Inc（Eos能源企业） | +25.94% | 电气设备
-   做什么：长时储能电池系统制造商
-   产品：Znyth储能BESS系统
-   催化：诉讼进展与管理层变动引发抛压
-3. [`FLY`](https://finance.yahoo.com/quote/FLY) Firefly Aerospace Inc（萤火虫航天） | +22.62% | 航空航天与国防
-   做什么：提供发射与航天器任务解决方案
-   产品：Alpha火箭
-   催化：估值分歧与波动性讨论升温
+   催化：Q1营收与毛利双双超预期
+2. [`EOSE`](https://finance.yahoo.com/quote/EOSE) Eos Energy Enterprises Inc（Eos能源企业） | +25.94% | 电气设备与储能
+   做什么：开发制造长时储能电池系统
+   产品：Znyth锌基BESS储能电池
+   催化：此前诉讼等利空消化后
+3. [`FLY`](https://finance.yahoo.com/quote/FLY) Firefly Aerospace Inc（萤火航天） | +22.62% | 航空航天与国防
+   做什么：提供发射与月球任务的航天公司
+   产品：Alpha火箭发射服务
+   催化：太空主题ETF走热
 4. [`WSC`](https://finance.yahoo.com/quote/WSC) Willscot Holdings Corp（威尔斯科特控股） | +20.60% | 商业服务与用品
-   做什么：北美模块化临时空间与储物租赁商
-   产品：模块化办公室与教室
-   催化：Q1业绩与全年指引双双超预期
+   做什么：模块化临建与移动仓储租赁商
+   产品：模块化办公与教室解决方案
+   催化：Q1业绩超预期
 5. [`RDW`](https://finance.yahoo.com/quote/RDW) Redwire Corp（红线航天） | +20.33% | 航空航天与国防
-   做什么：提供航天关键部件与空间基础设施
-   产品：星敏感器
-   催化：营收大增且需求预期强劲推升股价
+   做什么：为空间任务提供关键载荷与系统
+   产品：星敏感器等航天关键载荷
+   催化：Q1营收大增
 6. [`LUNR`](https://finance.yahoo.com/quote/LUNR) Intuitive Machines Inc（直觉机器） | +20.16% | 航空航天与国防
-   做什么：月球运输与数据通信基础设施服务商
-   产品：Nova-C月球着陆器
-   催化：获NASA月球任务合同并上调收入预期
+   做什么：提供月球着陆与空间数据服务
+   产品：Nova-C月球着陆器与任务服务
+   催化：获NASA月球合同
 
 ### 公用事业（1家｜平均 +27.36%｜龙头 FLNC）
-1. [`FLNC`](https://finance.yahoo.com/quote/FLNC) Fluence Energy Inc（Fluence能源） | +27.36% | 独立电力与可再生能源
-   做什么：储能系统与电网优化软件提供商
-   产品：Gridstack储能系统
-   催化：财报后机构上调目标价并提升评级
+1. [`FLNC`](https://finance.yahoo.com/quote/FLNC) Fluence Energy Inc（Fluence能源） | +27.36% | 储能系统与新能源电力
+   做什么：提供电网级储能系统及优化软件
+   产品：Gridstack/Ultrastack储能系统
+   催化：机构上调目标价
 
 ### 可选消费（1家｜平均 +18.62%｜龙头 CALY）
-1. [`CALY`](https://finance.yahoo.com/quote/CALY) Callaway Golf Co（卡拉威高尔夫） | +18.62% | 休闲娱乐用品
+1. [`CALY`](https://finance.yahoo.com/quote/CALY) Callaway Golf Co（卡拉威高尔夫） | +18.62% | 休闲用品与体育用品
    做什么：高尔夫装备与服饰品牌商
-   产品：球杆
-   催化：Q1营收与盈利双双超预期
+   产品：球杆球具及配套装备
+   催化：Q1营收与EPS双双超预期
 
-### 必需消费（1家｜平均 +14.30%｜龙头 CVSA）
-1. [`CVSA`](https://finance.yahoo.com/quote/CVSA) Covista Inc.（科维斯塔） | +14.30% | 教育培训服务
-   做什么：提供医疗健康与高教教育平台
-   产品：护理医学教育及在线学位课程
-   催化：业绩超预期
+### 金融（1家｜平均 +15.80%｜龙头 PS）
+1. [`PS`](https://finance.yahoo.com/quote/PS) Pershing Square Holdco, L.P.（潘兴广场） | +15.80% | 资产管理
+   做什么：阿克曼旗下对冲基金平台
+   产品：集中持股投资策略
+   催化：大佬观点与最新持仓消息发酵
 
 
 ## 港股分类看板
 
-### 信息技术（8家｜平均 +43.71%｜龙头 1236.HK）
-1. [`1236.HK`](https://finance.yahoo.com/quote/1236.HK) Shenzhen Ldrobot Co., Ltd（深圳乐动机器人） | +125.15% | 计算机硬件
-   做什么：激光雷达与服务机器人方案商
-   产品：激光雷达产品及相关解决方案
-   催化：机器人与激光雷达概念走强带动关注
-2. [`0465.HK`](https://finance.yahoo.com/quote/0465.HK) FUTONG TECH（富通科技发展） | +61.56% | 信息技术服务
-   做什么：企业数智化与云管理服务商
-   产品：IT基础设施与云管理服务
-   催化：数字化转型推进
-3. [`1087.HK`](https://finance.yahoo.com/quote/1087.HK) INVESTECH HLDGS（智易控股） | +33.82% | 通信设备与网络服务
-   做什么：提供网络系统集成与运维服务
-   产品：网络系统集成与运维服务
-   催化：科技服务股获资金回流
-4. [`2567.HK`](https://finance.yahoo.com/quote/2567.HK) QINIU（七牛智能） | +31.31% | 云计算与基础软件
-   做什么：提供音视频云PaaS服务商
-   产品：音视频云PaaS及直播互动服务
-   催化：云计算与音视频概念升温
-5. [`0482.HK`](https://finance.yahoo.com/quote/0482.HK) SANDMARTIN INTL（圣马丁国际） | +30.65% | 通信设备与消费电子
+### 信息技术（6家｜平均 +50.48%｜龙头 1236.HK）
+1. [`1236.HK`](https://finance.yahoo.com/quote/1236.HK) Shenzhen Ldrobot Co., Ltd（凌度智能机器人） | +128.76% | 机器人与传感器（激光雷达）
+   做什么：机器人与激光雷达方案提供商
+   产品：激光雷达产品与方案
+   催化：机器人与激光雷达概念走强带动
+2. [`0465.HK`](https://finance.yahoo.com/quote/0465.HK) FUTONG TECH（富通科技发展） | +59.61% | IT服务与系统集成
+   做什么：提供企业数智化转型与云管服务
+   产品：云管平台与IT基础设施服务
+   催化：云计算与数智化服务预期改善推动
+3. [`1087.HK`](https://finance.yahoo.com/quote/1087.HK) INVESTECH HLDGS（伟仕达控股） | +38.24% | 通信网络系统集成与服务
+   做什么：为运营商与企业提供网络集成服务
+   产品：数据中心与传输无线网络集成
+   催化：运营商资本开支与数据中心建设预期升温
+4. [`0482.HK`](https://finance.yahoo.com/quote/0482.HK) SANDMARTIN INTL（沙田通讯国际） | +29.03% | 通信设备
    做什么：卫星电视设备与电子产品制造商
-   产品：卫星机顶盒等卫星电视设备
-   催化：消费电子产业链情绪回暖
-6. [`1013.HK`](https://finance.yahoo.com/quote/1013.HK) WAI CHUN GROUP（伟俊集团控股） | +23.29% | IT分销与系统集成
-   做什么：提供计算机与通信系统销售集成
-   产品：系统集成解决方案
-   催化：小盘科技IT概念获市场炒作推升
-7. [`2631.HK`](https://finance.yahoo.com/quote/2631.HK) SICC（天科合达） | +22.62% | 碳化硅材料
-   做什么：研发量产销售碳化硅衬底材料
-   产品：导电/半绝缘SiC单晶衬底
-   催化：碳化硅叠加AI与新能源景气预期升温
-8. [`3355.HK`](https://finance.yahoo.com/quote/3355.HK) FS.COM（FS.COM） | +21.27% | 通信设备
-   做什么：提供数据中心与企业网络解决方案
-   产品：交换机等网络设备与解决方案
-   催化：数据中心与算力产业链受追捧
+   产品：卫星电视机顶盒等设备
+   催化：通信设备板块走强带动关注
+5. [`2567.HK`](https://finance.yahoo.com/quote/2567.HK) QINIU（七牛智能） | +27.27% | 云计算与基础软件
+   做什么：提供音视频云PaaS服务
+   产品：直播互动与音视频云服务
+   催化：媒体报道点名关注小盘股带动热度
+6. [`3355.HK`](https://finance.yahoo.com/quote/3355.HK) FS.COM（FS.COM） | +19.97% | 通信设备与数据中心网络
+   做什么：面向数据中心与企业网提供网络方案
+   产品：数据中心与企业级交换机
+   催化：AI算力与数据中心网络需求预期升温
 
-### 可选消费（4家｜平均 +37.31%｜龙头 2339.HK）
-1. [`2339.HK`](https://finance.yahoo.com/quote/2339.HK) BWI INT'L（京西国际） | +51.79% | 汽车零部件
+### 可选消费（5家｜平均 +32.37%｜龙头 2339.HK）
+1. [`2339.HK`](https://finance.yahoo.com/quote/2339.HK) BWI INT'L（京西国际） | +50.45% | 汽车零部件（底盘悬架）
    做什么：乘用车悬架系统零部件供应商
-   产品：汽车悬架产品及研发技术服务
-   催化：汽车零部件板块回暖带动情绪
-2. [`2946.HK`](https://finance.yahoo.com/quote/2946.HK) EASYHOLD GROUP（易控集团） | +51.65% | 餐饮
-   做什么：经营粤菜酒楼及宴会餐饮业务
-   产品：中式酒楼餐饮及婚宴宴会服务
-   催化：更名后市场关注度提升
-3. [`1327.HK`](https://finance.yahoo.com/quote/1327.HK) LUXXU GROUP（奢侈品集团） | +23.38% | 奢侈品与珠宝钟表
-   做什么：高端腕表与珠宝设计销售商
-   产品：钻表等高端腕表与珠宝
-   催化：奢侈品板块回暖
-4. [`8507.HK`](https://finance.yahoo.com/quote/8507.HK) I.CENTURY HLDG（i.century控股） | +22.45% | 服装制造与供应链
-   做什么：提供成衣制造与供应链管理服务
-   产品：梭织与针织服装
-   催化：小盘股资金博弈带动股价波动
+   产品：悬架减振器与空气悬架部件
+   催化：汽车零部件板块走强带动上涨
+2. [`2946.HK`](https://finance.yahoo.com/quote/2946.HK) EASYHOLD GROUP（易持集团） | +35.48% | 餐饮
+   做什么：经营粤菜餐厅及宴会服务
+   产品：粤菜酒楼及宴会餐饮
+   催化：公司更名完成
+3. [`1327.HK`](https://finance.yahoo.com/quote/1327.HK) LUXXU GROUP（乐璇集团） | +29.87% | 奢侈品与珠宝钟表
+   做什么：高端腕表及珠宝设计制造零售
+   产品：钻表及珠宝产品
+   催化：奢侈品消费预期回暖提振板块
+4. [`8279.HK`](https://finance.yahoo.com/quote/8279.HK) AGTECH HOLDINGS（亚博科技控股） | +24.62% | 博彩与彩票科技
+   做什么：提供支付及金融科技服务
+   产品：电子钱包及收单服务
+   催化：入选亚洲仙股关注名单
+5. [`8507.HK`](https://finance.yahoo.com/quote/8507.HK) I.CENTURY HLDG（i.century控股） | +21.43% | 服装制造与供应链服务
+   做什么：提供服装产品与供应链管理服务
+   产品：梭织/针织服装及配饰代工
+   催化：服装制造板块情绪回暖带动关注
 
-### 工业（2家｜平均 +26.88%｜龙头 3816.HK）
-1. [`3816.HK`](https://finance.yahoo.com/quote/3816.HK) KFM KINGDOM（KFM Kingdom） | +32.53% | 金属制品与精密冲压
-   做什么：精密金属冲压与机加工制造商
-   产品：精密金属冲压件及机加工件
-   催化：市场情绪改善
-2. [`2355.HK`](https://finance.yahoo.com/quote/2355.HK) BAOYE GROUP（宝业集团） | +21.23% | 工程建设
-   做什么：综合建筑施工及建材与地产开发商
-   产品：建筑施工与工程承包服务
-   催化：基建与稳增长预期升温提振板块
+### 工业（3家｜平均 +22.59%｜龙头 3816.HK）
+1. [`3816.HK`](https://finance.yahoo.com/quote/3816.HK) KFM KINGDOM（KFM金德） | +25.30% | 金属加工
+   做什么：精密金属冲压与机加工服务商
+   产品：精密冲压件与机加工件
+   催化：被纳入“Undiscovered Gems”报道引发关注
+2. [`1823.HK`](https://finance.yahoo.com/quote/1823.HK) HUAYUEXPRESSWAY（华昱高速） | +21.43% | 基础设施运营（高速公路）
+   做什么：青平高速运营及酒类分销商
+   产品：高速通行费及相关收入
+   催化：防御型公路股获资金轮动
+3. [`2944.HK`](https://finance.yahoo.com/quote/2944.HK) ZHONGKE GROUP（中科集团控股） | +21.05% | 装修工程与物业维护（含博彩运营）
+   做什么：澳门及香港提供装修维保并涉博彩
+   产品：酒店/零售/住宅装修工程与维修
+   催化：更名“中科”引发题材炒作升温
 
-### 必需消费（2家｜平均 +22.19%｜龙头 2226.HK）
-1. [`2226.HK`](https://finance.yahoo.com/quote/2226.HK) HONWORLD GP（老恒和酿造） | +22.81% | 调味品
-   做什么：生产销售“老恒和”料酒调味品
-   产品：料酒等调味品
-   催化：消费防御风格回归带动关注
-2. [`8160.HK`](https://finance.yahoo.com/quote/8160.HK) GOLDWAY EDU（高途教育集团） | +21.57% | 教育培训服务
-   做什么：在港及内地提供中小学课外辅导
-   产品：中小学补习课程与加盟管理
-   催化：教育培训板块走强带动股价上行
+### 必需消费（2家｜平均 +20.43%｜龙头 8160.HK）
+1. [`8160.HK`](https://finance.yahoo.com/quote/8160.HK) GOLDWAY EDU（金汇教育集团） | +21.57% | 教育培训
+   做什么：港澳中小学课外辅导机构
+   产品：中小学课外补习服务
+   催化：博弈教育复苏预期
+2. [`2226.HK`](https://finance.yahoo.com/quote/2226.HK) HONWORLD GP（老恒和酿造） | +19.30% | 调味品
+   做什么：生产销售老恒和牌烹饪酒与调味品
+   产品：烹饪酒及相关调味品
+   催化：消费防御属性受青睐带来资金关注
 
-### 医药生物（1家｜平均 +37.63%｜龙头 2591.HK）
-1. [`2591.HK`](https://finance.yahoo.com/quote/2591.HK) INNOGEN-B（英诺金药业-B） | +37.63% | 生物制药
-   做什么：聚焦代谢与中枢疾病创新药研发
-   产品：糖尿病等代谢领域创新药
-   催化：生物医药板块走强
+### 医疗保健（1家｜平均 +32.17%｜龙头 2591.HK）
+1. [`2591.HK`](https://finance.yahoo.com/quote/2591.HK) INNOGEN-B（英诺健医药-B） | +32.17% | 生物科技
+   做什么：聚焦代谢与中枢疾病新药研发
+   产品：糖尿病等创新药研发
+   催化：创新药板块反弹带动情绪回暖
 
-### 金融（1家｜平均 +23.08%｜龙头 8279.HK）
-1. [`8279.HK`](https://finance.yahoo.com/quote/8279.HK) AGTECH HOLDINGS（亚博科技控股） | +23.08% | 数字支付与金融科技
-   做什么：提供数字支付及数字银行服务
-   产品：支付收单与相关服务
-   催化：媒体点名亚洲便士股引发关注
+### 基础材料（1家｜平均 +25.27%｜龙头 0731.HK）
+1. [`0731.HK`](https://finance.yahoo.com/quote/0731.HK) C&D NEWIN（建发新胜纸业及纸浆） | +25.27% | 纸及纸制品
+   做什么：香港纸品制造与贸易商
+   产品：纸浆及造纸产品
+   催化：市场炒作纸价回暖
 
-### 基础材料（1家｜平均 +23.08%｜龙头 0731.HK）
-1. [`0731.HK`](https://finance.yahoo.com/quote/0731.HK) C&D NEWIN（建发新胜纸业浆纸） | +23.08% | 纸浆与纸制品
-   做什么：从事纸浆及纸板生产与贸易
-   产品：双胶纸板等纸品
-   催化：纸价预期与周期修复情绪提振纸品板块
+### 科技（1家｜平均 +23.40%｜龙头 2631.HK）
+1. [`2631.HK`](https://finance.yahoo.com/quote/2631.HK) SICC（天岳先进材料） | +23.40% | 半导体材料（碳化硅）
+   做什么：碳化硅衬底研发与生产商
+   产品：导电及半绝缘SiC单晶衬底
+   催化：SiC产业景气预期升温
 
-### 通信服务（1家｜平均 +19.82%｜龙头 0745.HK）
-1. [`0745.HK`](https://finance.yahoo.com/quote/0745.HK) CN CULTURE GP（中国国民文化集团） | +19.82% | 广告与营销服务
-   做什么：提供移动广告营销及电商与影视业务
+### 通信服务（1家｜平均 +22.78%｜龙头 0745.HK）
+1. [`0745.HK`](https://finance.yahoo.com/quote/0745.HK) CN CULTURE GP（中国国家文化集团） | +22.78% | 广告与营销服务
+   做什么：移动端广告与内容营销平台
    产品：移动广告投放与营销服务
-   催化：文娱传媒概念回暖带动情绪修复
+   催化：暂无明确催化消息
 
 ## 核心龙头
 
 - 最强板块：信息技术
-- 最强细分行业：航空航天与国防
-- 总龙头：1236.HK（Shenzhen Ldrobot Co., Ltd（深圳乐动机器人），+125.15%）
+- 最强细分行业：半导体与半导体设备
+- 总龙头：1236.HK（Shenzhen Ldrobot Co., Ltd（凌度智能机器人），+128.76%）
 
 ## 上涨原因归因
 
-- 财报季“超预期+上调指引/目标价”密集落地（如INOD、RKLB、AKAM、FROG、FLNC），触发估值重定价
-- AI基础设施与数据链条扩散（数据工程、AI云、软件供应链、边缘云安全、音视频云），资金偏好向“AI落地型”聚焦
-- 航天航空与国防方向在手订单/防务订单进展强化确定性（RKLB）并带动产业链情绪扩散
+- 业绩与指引超预期成为主线：INOD、RKLB、FROG、AKAM等财报/订单/大单驱动，资金偏好“可验证的增长”。
+- AI基础设施与软件链条再度升温：数据工程与AI训练（INOD）、AI云大单（AKAM）、DevOps（FROG）、AI推理/存储加速新品（MXL）共同强化AI景气预期。
+- 主题与政策/资金偏好催化延伸：太空主题ETF走热带动航天板块（FLY、RKLB）；储能个股在机构调价/利空消化后修复（FLNC、EOSE）。
 
 ## 后续趋势判断
 
-短线仍偏强，主线大概率围绕“AI落地业绩线（数据/软件/云）+航天军工订单线”轮动延续；但在大涨后分化会加剧，资金更偏向可验证的业绩与订单兑现标的，缺乏催化的小票容易冲高回落。
+短期大概率延续“事件驱动+高波动”的结构行情：围绕AI数据工程/云安全/软件工具链的强势有望保持，但将从普涨转向对业绩兑现与订单落地的筛选；航天军工与储能更多体现主题与情绪修复，持续性取决于后续订单/指引上修与资金流入是否延续。港股科技分支（机器人、云与通信）若缺少新增订单/政策落地，容易出现冲高分化。
 
-结论主要依据涨幅榜结构与已披露的财报/订单/评级催化推断；港股多只个股缺少明确单一事件催化（更多为题材与情绪驱动），对持续性判断置信度中等。
+结论主要基于涨幅榜个股催化与板块结构归纳；缺少指数涨跌、成交量/资金流、宏观利率与风险偏好等关键信号，趋势判断为中等置信度，需结合后续财报兑现与成交数据验证。
