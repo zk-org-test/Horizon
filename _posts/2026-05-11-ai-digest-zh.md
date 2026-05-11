@@ -26,14 +26,14 @@ kind: ai
 ## Product Hunt Top 20
 
 - #1 [Better Sol](https://www.producthunt.com/products/better-sol)：Develop Solana applications end-to-end using TypeScript Discussion | Link
-- #2 [Keel](https://www.producthunt.com/products/keel-3)：An AI assistant whose memory belongs to you Discussion | Link | 主题：Artificial Intelligence
-- #3 [LumiChats Offline(free)](https://www.producthunt.com/products/lumichats-offline)：Your AI, fully offline with Zero data collection & 100% free Discussion | Link | 主题：Artificial Intelligence, Data
-- #4 [AgentPeek](https://www.producthunt.com/products/agentpeek)：Claude Code and Codex in your Mac notch Discussion | Link
-- #5 [InvestorFinder](https://www.producthunt.com/products/investorfinder)：Find investors who've backed founders just like you Discussion | Link
+- #2 [LumiChats Offline(free)](https://www.producthunt.com/products/lumichats-offline)：Your AI, fully offline with Zero data collection & 100% free Discussion | Link | 主题：Artificial Intelligence, Data
+- #3 [Adject 2.0](https://www.producthunt.com/products/adject)：Create hyperrealistic product visuals with AI Discussion | Link | 主题：Artificial Intelligence
+- #4 [InvestorFinder](https://www.producthunt.com/products/investorfinder)：Find investors who've backed founders just like you Discussion | Link
+- #5 [deepsec](https://www.producthunt.com/products/vercel)：Open-source coding security harness Discussion | Link | 主题：Developer Tools
 - #6 [Tailgrids 3.0](https://www.producthunt.com/products/tailgrids)：Open-source React UI library for Tailwind and AI Workflow Discussion | Link | 主题：Artificial Intelligence
-- #7 [deepsec](https://www.producthunt.com/products/vercel)：Open-source coding security harness Discussion | Link | 主题：Developer Tools
-- #8 [Notion 3.4](https://www.producthunt.com/products/notion-3-4)：New dashboards, connectors, sidebar & smarter AI agents Discussion | Link | 主题：Artificial Intelligence
-- #9 [Adject 2.0](https://www.producthunt.com/products/adject)：Create hyperrealistic product visuals with AI Discussion | Link | 主题：Artificial Intelligence
+- #7 [Notion 3.4](https://www.producthunt.com/products/notion-3-4)：New dashboards, connectors, sidebar & smarter AI agents Discussion | Link | 主题：Artificial Intelligence
+- #8 [Keel](https://www.producthunt.com/products/keel-3)：An AI assistant whose memory belongs to you Discussion | Link | 主题：Artificial Intelligence
+- #9 [AgentPeek](https://www.producthunt.com/products/agentpeek)：Claude Code and Codex in your Mac notch Discussion | Link
 - #10 [MolmoAct 2](https://www.producthunt.com/products/allen-institute-of-artificial-intelligence)：Open robotics model that reasons in 3D before acting Discussion | Link | 主题：Artificial Intelligence
 - #11 [BugDrop](https://www.producthunt.com/products/bugdrop-2)：In-app feedback that creates GitHub Issues with screenshots Discussion | Link
 - #12 [Nylas CLI](https://www.producthunt.com/products/nylas)：Email, calendar, and contacts for AI agents Discussion | Link | 主题：Artificial Intelligence
