@@ -240,7 +240,7 @@ class WebhookNotifier:
 
     def __init__(self, config: WebhookConfig, console=None):
         self.config = config
-        self.url = os.getenv(config.url_env or "") if config.url_env else None
+        self.url = os.getenv(config.url_env or "").strip() if config.url_env and os.getenv(config.url_env or "") else None
         if console is None:
             try:
                 from rich.console import Console
@@ -255,7 +255,7 @@ class WebhookNotifier:
 
     def _render_request_components(self, variables: dict) -> tuple[str, str | None, dict[str, str]]:
         """Render the final request URL, body, and headers for the given variables."""
-        request_url = _render(self.url or "", variables)
+        request_url = _render(self.url or "", variables).strip()
 
         content_type = "application/x-www-form-urlencoded"
         body_content = None

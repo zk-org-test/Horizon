@@ -373,6 +373,14 @@ class TestWebhookNotifier:
             _run_async(notifier.notify({"date": "2026-04-24"}))
             mock_client.assert_not_called()
 
+    def test_url_env_is_trimmed_before_request(self):
+        os.environ[_TEST_URL_ENV] = f"  {_TEST_URL}  \n"
+        config = WebhookConfig(enabled=True, url_env=_TEST_URL_ENV)
+        notifier = WebhookNotifier(config)
+        preview = notifier.build_preview({"date": "2026-04-24"})
+        assert preview["url"] == _TEST_URL
+        del os.environ[_TEST_URL_ENV]
+
     def test_get_request_when_no_body(self):
         os.environ[_TEST_URL_ENV] = "https://example.com/webhook?date=#{date}"
         config = WebhookConfig(
