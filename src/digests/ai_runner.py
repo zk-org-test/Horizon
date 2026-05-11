@@ -20,6 +20,17 @@ from ..models import AIDigestConfig, SourcesConfig
 from .summarizers import AiDigestSummary, AiSummarizer
 
 
+AI_CATEGORY_ZH = {
+    "Agent": "智能体",
+    "Data": "数据",
+    "DevTool": "开发工具",
+    "Infra": "模型基础设施",
+    "Design": "设计创作",
+    "Productivity": "效率办公",
+    "Open Source": "开源工具",
+}
+
+
 def classify_ai_category(name: str, description: str, topics: list[str]) -> str:
     """Map AI products and repos into a digest-friendly category."""
     text = " ".join([name, description, " ".join(topics)]).lower()
@@ -48,11 +59,20 @@ class AIProject:
     topics: list[str]
     votes: Optional[int] = None
     category: str = "Open Source"
+    summary_zh: Optional[str] = None
+    name_zh: Optional[str] = None
+    why_cn: Optional[str] = None
 
     def to_line(self) -> str:
+        display_name = self.name if not self.name_zh else f"{self.name}（{self.name_zh}）"
         topic_part = f" | 主题：{', '.join(self.topics[:3])}" if self.topics else ""
         metric = f" | 热度：{self.votes}" if self.votes is not None else ""
-        return f"- #{self.rank} [{self.name}]({self.url})：{self.description}{topic_part}{metric}"
+        summary = self.summary_zh or self.description
+        return f"- #{self.rank} [{display_name}]({self.url})：{summary} | 分类：{self.category_zh}{topic_part}{metric}"
+
+    @property
+    def category_zh(self) -> str:
+        return AI_CATEGORY_ZH.get(self.category, self.category)
 
 
 class AIDigestRunner:
@@ -74,10 +94,11 @@ class AIDigestRunner:
         current = now or datetime.now(timezone.utc)
         github_items = await self._fetch_github_trending()
         product_hunt_items = await self._fetch_product_hunt(current)
+        await self._localize_projects(github_items + product_hunt_items)
 
         all_items = github_items + product_hunt_items
         counts = Counter(item.category for item in all_items)
-        category_lines = [f"- {name}: {count} 个项目" for name, count in counts.most_common()]
+        category_lines = [f"- {AI_CATEGORY_ZH.get(name, name)}：{count} 个项目" for name, count in counts.most_common()]
 
         insights = await self._generate_ai_insights(github_items, product_hunt_items, counts)
         summary = AiDigestSummary(
@@ -303,11 +324,11 @@ class AIDigestRunner:
         dominant = counts.most_common(1)[0][0] if counts else "Agent"
         notable = []
         for project in (github_items + product_hunt_items)[:5]:
-            notable.append(f"{project.name}：{project.category} 方向热度较高，值得继续观察。")
+            notable.append(f"{project.name}：{AI_CATEGORY_ZH.get(project.category, project.category)}方向热度较高，值得继续观察。")
         return {
-            "headline": f"今天 AI 榜单最强主线集中在 {dominant} 方向。",
+            "headline": f"今天 AI 榜单最强主线集中在 {AI_CATEGORY_ZH.get(dominant, dominant)}方向。",
             "notable_projects": notable,
-            "trend_outlook": f"{dominant} 相关项目在 GitHub Trending 和 Product Hunt 同时出现，短期内仍会继续升温。",
+            "trend_outlook": f"{AI_CATEGORY_ZH.get(dominant, dominant)}相关项目在 GitHub Trending 和 Product Hunt 同时出现，短期内仍会继续升温。",
         }
 
     def _find_feed_url(self, feed_name: str) -> Optional[str]:
@@ -319,6 +340,45 @@ class AIDigestRunner:
     @staticmethod
     def _html_to_text(value: str) -> str:
         return unescape(BeautifulSoup(value, "html.parser").get_text(" ", strip=True))
+
+    async def _localize_projects(self, projects: list[AIProject]) -> None:
+        if not projects:
+            return
+
+        payload = [
+            {
+                "name": project.name,
+                "source": project.source,
+                "category": project.category,
+                "description": project.description,
+                "topics": project.topics[:3],
+            }
+            for project in projects
+        ]
+        system = "你是一名双语 AI 产品分析师。请把项目摘要和分类转成自然中文，只返回 JSON。"
+        user = (
+            '返回 JSON：{"items":[{"name":"","name_zh":"","summary_zh":"","why_cn":"","category_zh":""}]}\n'
+            f"项目列表：{payload}"
+        )
+        try:
+            response = await asyncio.wait_for(
+                self.ai_client.complete(system=system, user=user, max_tokens=2600),
+                timeout=45,
+            )
+            result = parse_json_response(response) or {}
+        except Exception:
+            result = {}
+
+        localized_map = {str(item.get("name")): item for item in result.get("items", []) if item.get("name")}
+        zh_to_en = {value: key for key, value in AI_CATEGORY_ZH.items()}
+        for project in projects:
+            item = localized_map.get(project.name, {})
+            project.name_zh = str(item.get("name_zh") or "").strip() or None
+            project.summary_zh = str(item.get("summary_zh") or "").strip() or project.description
+            project.why_cn = str(item.get("why_cn") or "").strip() or None
+            category_zh = str(item.get("category_zh") or "").strip()
+            if category_zh:
+                project.category = zh_to_en.get(category_zh, project.category)
 
     @staticmethod
     def _infer_topics_from_repo(text: str) -> list[str]:

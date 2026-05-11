@@ -12,8 +12,10 @@ class FinanceDigestSummary:
     market_summary: str
     overview_points: list[str]
     heat_rankings: list[str]
-    us_top_movers: list[Any]
-    hk_top_movers: list[Any]
+    us_focus_movers: list[Any]
+    hk_focus_movers: list[Any]
+    us_more_movers: list[Any]
+    hk_more_movers: list[Any]
     strongest_sector: str
     strongest_industry: str
     leader: Any
@@ -48,10 +50,14 @@ class FinanceSummarizer:
         lines.extend([f"- {item}" for item in summary.overview_points] or ["- 暂无结论"])
         lines.extend(["", "## 板块热度榜", ""])
         lines.extend(summary.heat_rankings or ["- 暂无热度排名"])
-        lines.extend(["", "## 昨日美股 Top 20 焦点", ""])
-        lines.extend(self._render_lines(summary.us_top_movers))
-        lines.extend(["", "## 昨日港股 Top 20 焦点", ""])
-        lines.extend(self._render_lines(summary.hk_top_movers))
+        lines.extend(["", "## 昨日美股重点公司", ""])
+        lines.extend(self._render_lines(summary.us_focus_movers))
+        lines.extend(["", "## 其余美股上榜速览", ""])
+        lines.extend(self._render_lines(summary.us_more_movers))
+        lines.extend(["", "## 昨日港股重点公司", ""])
+        lines.extend(self._render_lines(summary.hk_focus_movers))
+        lines.extend(["", "## 其余港股上榜速览", ""])
+        lines.extend(self._render_lines(summary.hk_more_movers))
         lines.extend(
             [
                 "",
@@ -102,13 +108,13 @@ class AiSummarizer:
             "",
             summary.headline,
             "",
-            "## GitHub Trending Top 20",
+            "## GitHub Trending 榜单",
             "",
         ]
         lines.extend(self._render_projects(summary.github_trending))
-        lines.extend(["", "## Product Hunt Top 20", ""])
+        lines.extend(["", "## Product Hunt 榜单", ""])
         lines.extend(self._render_projects(summary.product_hunt))
-        lines.extend(["", "## 分类概览", ""])
+        lines.extend(["", "## 分类热度榜", ""])
         if isinstance(summary.category_breakdown, dict):
             lines.extend([f"- {category}: {count}" for category, count in summary.category_breakdown.items()])
         else:
@@ -140,7 +146,7 @@ class AiSummarizer:
                 rendered.append(item)
                 continue
             rendered.append(
-                "- {name} | {category} | {why}".format(
+                "- {name} | 分类：{category} | {why}".format(
                     name=item.get("name", "未知项目"),
                     category=item.get("category", "未分类"),
                     why=item.get("why_interesting", item.get("description", "")),

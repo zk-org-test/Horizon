@@ -144,6 +144,9 @@ class MarketMover:
     source_url: Optional[str] = None
     catalyst: Optional[str] = None
     news_headlines: list[str] | None = None
+    company_intro: Optional[str] = None
+    main_products: Optional[str] = None
+    move_reason: Optional[str] = None
 
     @property
     def display_name(self) -> str:
@@ -151,14 +154,34 @@ class MarketMover:
             return f"{self.name}（{self.name_zh}）"
         return self.name
 
-    def to_line(self, rank: int) -> str:
+    @property
+    def linked_symbol(self) -> str:
+        if self.source_url:
+            return f"[`{self.symbol}`]({self.source_url})"
+        return f"`{self.symbol}`"
+
+    def to_brief_line(self, rank: int) -> str:
         category = self.sector_zh or "未分类"
         subcategory = self.industry_zh or "未分类"
         category_text = category if category == subcategory else f"{category} / {subcategory}"
         catalyst = f" | 触发：{self.catalyst}" if self.catalyst else ""
         return (
-            f"{rank}. `{self.symbol}` {self.display_name} | {self.change_pct:+.2f}%"
+            f"{rank}. {self.linked_symbol} {self.display_name} | {self.change_pct:+.2f}%"
             f" | 分类：{category_text}{catalyst}"
+        )
+
+    def to_focus_block(self, rank: int) -> str:
+        category = self.sector_zh or "未分类"
+        subcategory = self.industry_zh or "未分类"
+        category_text = category if category == subcategory else f"{category} / {subcategory}"
+        intro = self.company_intro or "公司介绍待补充。"
+        products = self.main_products or "主要产品信息待补充。"
+        reason = self.move_reason or self.catalyst or "暂未识别到明确催化，更多体现题材与资金偏好。"
+        return (
+            f"{rank}. {self.linked_symbol} {self.display_name} | {self.change_pct:+.2f}% | 分类：{category_text}\n"
+            f"   公司：{intro}\n"
+            f"   产品：{products}\n"
+            f"   走强原因：{reason}"
         )
 
 
@@ -248,9 +271,9 @@ class FinanceDigestRunner:
         strongest_sector = pick_strongest_group([asdict(item) for item in all_top], "sector_zh")
         strongest_industry = pick_strongest_group([asdict(item) for item in all_top], "industry_zh")
         leader = self._pick_leader(all_top, strongest_sector)
-        heat_rankings = self._build_heat_ranking_lines(all_top)
         overview_points = self._build_overview_points(us_top, hk_top, strongest_sector, leader)
         ai_insights = await self._generate_ai_insights(trade_day.date(), us_top, hk_top, strongest_sector, strongest_industry)
+        heat_rankings = self._build_heat_ranking_lines(all_top, ai_insights.get("heat_reasons"))
 
         confidence_note = ai_insights["confidence_note"]
         if not self.financial_client.enabled:
@@ -263,8 +286,10 @@ class FinanceDigestRunner:
             market_summary=ai_insights["market_summary"],
             overview_points=overview_points,
             heat_rankings=heat_rankings,
-            us_top_movers=[item.to_line(index) for index, item in enumerate(us_top, start=1)],
-            hk_top_movers=[item.to_line(index) for index, item in enumerate(hk_top, start=1)],
+            us_focus_movers=[item.to_focus_block(index) for index, item in enumerate(us_top[:5], start=1)],
+            hk_focus_movers=[item.to_focus_block(index) for index, item in enumerate(hk_top[:5], start=1)],
+            us_more_movers=[item.to_brief_line(index) for index, item in enumerate(us_top[5:], start=6)],
+            hk_more_movers=[item.to_brief_line(index) for index, item in enumerate(hk_top[5:], start=6)],
             strongest_sector=strongest_sector,
             strongest_industry=strongest_industry,
             leader=leader,
@@ -419,15 +444,19 @@ class FinanceDigestRunner:
                 "name_en": mover.name,
                 "sector_hint": mover.sector,
                 "industry_hint": mover.industry,
+                "catalyst_hint": mover.catalyst,
+                "headline_hints": mover.news_headlines or [],
             }
             for mover in movers
         ]
         system = (
             "你是一名中英双语金融研究员。请根据股票英文名和提示，为每只股票补充常用中文名、"
-            "中文一级分类和中文二级分类。输出严格 JSON，不要解释。尽量不要返回“未分类”。"
+            "中文一级分类、中文二级分类、公司一句话介绍、主要产品/业务、以及昨日上涨原因。"
+            "输出严格 JSON，不要解释。尽量不要返回“未分类”。"
         )
         user = (
-            '返回 JSON：{"items":[{"symbol":"", "name_zh":"", "sector_zh":"", "industry_zh":""}]}\n'
+            '返回 JSON：{"items":[{"symbol":"", "name_zh":"", "sector_zh":"", "industry_zh":"", '
+            '"company_intro":"", "main_products":"", "move_reason":""}]}\n'
             f"股票列表：{payload}"
         )
         try:
@@ -448,6 +477,9 @@ class FinanceDigestRunner:
                 str(item.get("industry_zh") or mover.industry_zh or mover.industry),
                 mover.sector_zh,
             )
+            mover.company_intro = str(item.get("company_intro") or mover.company_intro or "").strip() or None
+            mover.main_products = str(item.get("main_products") or mover.main_products or "").strip() or None
+            mover.move_reason = str(item.get("move_reason") or mover.move_reason or "").strip() or None
 
     async def _generate_ai_insights(
         self,
@@ -471,6 +503,7 @@ class FinanceDigestRunner:
         user = (
             "请输出 JSON："
             '{"market_summary":"一句话总览","catalysts":["原因1","原因2","原因3"],'
+            '"heat_reasons":[{"sector":"板块名","reason":"为什么这个板块最热"}],'
             '"trend_outlook":"后续趋势判断","confidence_note":"如信号不足请说明"}\n\n'
             f"数据：{payload}"
         )
@@ -490,6 +523,7 @@ class FinanceDigestRunner:
         return {
             "market_summary": str(result.get("market_summary") or fallback["market_summary"]),
             "catalysts": [str(item) for item in result.get("catalysts") or fallback["catalysts"]],
+            "heat_reasons": result.get("heat_reasons") or fallback["heat_reasons"],
             "trend_outlook": str(result.get("trend_outlook") or fallback["trend_outlook"]),
             "confidence_note": str(result.get("confidence_note") or fallback["confidence_note"]),
         }
@@ -515,6 +549,9 @@ class FinanceDigestRunner:
                 "上榜个股集中在科技、能源或题材股，更多体现交易型资金抱团。",
                 "公开公告与新闻信号不足，部分走势仍可能是事件驱动后的情绪放大。",
             ],
+            "heat_reasons": [
+                {"sector": strongest_sector, "reason": "该方向上榜公司最多，且平均涨幅领先，说明资金集中度最高。"},
+            ],
             "trend_outlook": (
                 f"{strongest_sector} 方向短线仍可能延续，但更大概率出现“主线延续、个股分化”结构；"
                 "判断关键在于次日是否继续放量、龙头是否保持强势。"
@@ -522,7 +559,7 @@ class FinanceDigestRunner:
             "confidence_note": f"当前总龙头是 {leader}，但公开新闻不足，结论主要基于榜单结构与涨幅分布。",
         }
 
-    def _build_heat_ranking_lines(self, movers: list[MarketMover]) -> list[str]:
+    def _build_heat_ranking_lines(self, movers: list[MarketMover], heat_reasons: Optional[list[dict[str, Any]]] = None) -> list[str]:
         ranking = rank_heat_groups(
             [
                 {
@@ -536,10 +573,20 @@ class FinanceDigestRunner:
             "sector_zh",
             top_n=5,
         )
+        reason_map = {
+            str(item.get("sector") or "").strip(): str(item.get("reason") or "").strip()
+            for item in (heat_reasons or [])
+            if item.get("sector") and item.get("reason")
+        }
         return [
             (
                 f"{index}. {item['label']}：{item['count']} 家上榜，平均 {item['avg_change']:+.2f}% ，"
                 f"龙头 {item['leader_symbol']}（{item['leader_name']}）"
+                + (
+                    f"\n   热点原因：{reason_map[item['label']]}"
+                    if reason_map.get(item["label"])
+                    else ""
+                )
             )
             for index, item in enumerate(ranking, start=1)
         ] or ["- 暂无热度排名"]
@@ -603,6 +650,9 @@ class FinanceDigestRunner:
             "sector_zh": mover.sector_zh,
             "industry_zh": mover.industry_zh,
             "catalyst": mover.catalyst,
+            "company_intro": mover.company_intro,
+            "main_products": mover.main_products,
+            "move_reason": mover.move_reason,
         }
 
     @staticmethod
