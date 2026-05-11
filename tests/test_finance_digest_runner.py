@@ -98,6 +98,24 @@ def test_apply_textual_fallbacks_uses_summary_and_search_context():
     assert mover.move_reason
 
 
+def test_apply_compact_fields_prefers_short_summary_over_raw_truncation():
+    runner = FinanceDigestRunner(FinanceDigestConfig(enabled=True, top_n=5), Mock(), httpx.AsyncClient())
+    mover = MarketMover(symbol="INOD", name="Innodata", market="us", change_pct=12.3)
+    mover.company_intro = "Innodata是一家数据工程与AI数据服务公司，为大模型训练、对齐和评测提供数据处理与交付能力。"
+    mover.main_products = "数字数据解决方案、结构化医疗数据平台和媒体情报SaaS，覆盖训练数据、模型评测和内容分析。"
+    mover.move_reason = "公司公布创纪录季度业绩，营收和盈利超预期并上调全年增长指引，同时披露大客户新订单进展。"
+
+    runner._apply_compact_fields(mover)
+    asyncio.run(runner.http_client.aclose())
+
+    assert "…" not in mover.company_intro
+    assert "…" not in mover.main_products
+    assert "…" not in mover.move_reason
+    assert len(mover.company_intro) <= 32
+    assert len(mover.main_products) <= 32
+    assert len(mover.move_reason) <= 40
+
+
 def test_needs_chinese_rewrite_flags_english_and_unclassified_content():
     runner = FinanceDigestRunner(FinanceDigestConfig(enabled=True, top_n=5), Mock(), httpx.AsyncClient())
 
@@ -133,9 +151,9 @@ def test_ai_deepen_focus_movers_overrides_generic_fallback_text():
     asyncio.run(runner._ai_deepen_focus_movers([mover]))
     asyncio.run(runner.http_client.aclose())
 
-    assert mover.company_intro == "Innodata 是一家 AI 数据工程公司。"
-    assert mover.main_products == "AI 训练数据与媒体情报 SaaS。"
-    assert mover.move_reason == "创纪录业绩并上调指引推动上涨。"
+    assert mover.company_intro.startswith("Innodata 是一家 AI 数据工程公司")
+    assert mover.main_products.startswith("AI 训练数据与媒体情报 SaaS")
+    assert mover.move_reason.startswith("创纪录业绩并上调指引推动上涨")
 
 
 def test_ai_label_movers_ignores_generic_ai_output_and_keeps_specific_fallbacks():

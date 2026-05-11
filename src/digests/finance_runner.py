@@ -284,8 +284,9 @@ class MarketMover:
         subcategory = self.industry_zh or self.sector_zh or "未分类"
         intro = self._compact_text(self.company_intro, 44, fallback="业务信息仍在补充。")
         products = self._compact_text(self.main_products, 44, fallback="核心产品信息仍在补充。")
+        raw_reason = re.sub(r"^(新闻线索显示|公开信息显示)[，,:：]?", "", (self.move_reason or self.catalyst or "")).strip()
         reason = self._compact_text(
-            self.move_reason or self.catalyst,
+            raw_reason,
             52,
             fallback="暂无明确单一催化，更像板块情绪与资金共振。",
         )
@@ -302,9 +303,35 @@ class MarketMover:
         if not normalized:
             return fallback
         normalized = normalized.rstrip("。；;,. ")
+        for separator in ["。", "；", ";", "！", "？", "：", ":", "，", "、"]:
+            if separator in normalized:
+                parts = [part.strip() for part in normalized.split(separator) if part.strip()]
+                if not parts:
+                    continue
+                candidate = parts[0]
+                if len(candidate) <= max_len:
+                    return candidate
+                shortened = MarketMover._compact_by_clause(parts, max_len)
+                if shortened:
+                    return shortened
         if len(normalized) > max_len:
             normalized = normalized[: max_len - 1].rstrip("，、； ") + "…"
         return normalized
+
+    @staticmethod
+    def _compact_by_clause(parts: list[str], max_len: int) -> str:
+        current = ""
+        for part in parts:
+            next_value = f"{current}，{part}" if current else part
+            if len(next_value) > max_len:
+                break
+            current = next_value
+        if current:
+            return current
+        first = parts[0]
+        if len(first) > max_len:
+            return first[: max_len - 1].rstrip("，、； ") + "…"
+        return first
 
 
 class FinancialDatasetsClient:
@@ -396,6 +423,7 @@ class FinanceDigestRunner:
         await self._ai_label_movers(us_top + hk_top)
         focus_candidates = [mover for mover in (us_top[:5] + hk_top[:5]) if self._mover_needs_refinement(mover)]
         await self._ai_deepen_focus_movers(focus_candidates)
+        await self._ai_compact_movers(us_top + hk_top)
 
         all_top = us_top + hk_top
         strongest_sector = pick_strongest_group([asdict(item) for item in all_top], "sector_zh")
@@ -653,6 +681,7 @@ class FinanceDigestRunner:
                 "中文一级分类、中文二级分类、公司一句话介绍、主要产品/业务、以及昨日上涨原因。"
                 "输出严格 JSON，不要解释。尽量不要返回“未分类”、'待补充'、'未知' 这类占位词；"
                 "如果公开资料有限，也要基于业务摘要与新闻线索给出尽量具体的中文表述。"
+                "其中公司介绍不超过32字，产品介绍不超过32字，上涨原因不超过40字。"
             )
             user = (
                 '返回 JSON：{"items":[{"symbol":"", "name_zh":"", "sector_zh":"", "industry_zh":"", '
@@ -715,6 +744,7 @@ class FinanceDigestRunner:
                 "公司是做什么的、主要产品/服务是什么、这次上涨的具体原因是什么。"
                 "禁止输出空话，例如“主营方向与X相关”“主要产品与X业务相关”“资金围绕题材交易”。"
                 "若缺乏明确催化，要明确写“暂无明确公司公告催化，更像板块/情绪驱动”，但仍要结合公司业务解释。"
+                "三段都要写成适合日报快读的短句：公司介绍不超过32字，产品介绍不超过32字，催化不超过40字。"
                 "只返回 JSON。"
             )
             user = (
@@ -760,6 +790,61 @@ class FinanceDigestRunner:
                     fallback=self._translate_industry(mover.industry, mover.sector_zh),
                 )
             self._apply_textual_fallbacks(mover)
+
+    async def _ai_compact_movers(self, movers: list[MarketMover]) -> None:
+        if not movers:
+            return
+
+        for mover in movers:
+            self._apply_compact_fields(mover)
+
+        for start in range(0, len(movers), 6):
+            batch = movers[start:start + 6]
+            payload = [
+                {
+                    "symbol": mover.symbol,
+                    "company_intro": mover.company_intro,
+                    "main_products": mover.main_products,
+                    "move_reason": mover.move_reason,
+                }
+                for mover in batch
+            ]
+            system = (
+                "你是一名中文财经快讯编辑。请把每只股票的3段信息压缩成适合日报快读的短句。"
+                "要求：公司介绍不超过32字，产品介绍不超过32字，催化不超过40字；"
+                "保持中文自然，不要省略核心信息，不要输出半句话，不要使用项目符号。"
+                "只返回 JSON。"
+            )
+            user = (
+                '返回 JSON：{"items":[{"symbol":"","company_intro":"","main_products":"","move_reason":""}]}\n'
+                f"股票列表：{payload}"
+            )
+            try:
+                response = await asyncio.wait_for(
+                    self.ai_client.complete(system=system, user=user, max_tokens=1600),
+                    timeout=25,
+                )
+                result = parse_json_response(response) or {}
+            except Exception as exc:
+                print(
+                    f"[finance] ai_compact_movers failed for {[mover.symbol for mover in batch]}: "
+                    f"{type(exc).__name__}: {exc}"
+                )
+                result = {}
+
+            compacted_map = {str(item.get("symbol")): item for item in result.get("items", []) if item.get("symbol")}
+            for mover in batch:
+                item = compacted_map.get(mover.symbol, {})
+                company_intro = str(item.get("company_intro") or "").strip()
+                main_products = str(item.get("main_products") or "").strip()
+                move_reason = str(item.get("move_reason") or "").strip()
+                if company_intro and self._is_useful_cn_text(company_intro):
+                    mover.company_intro = company_intro
+                if main_products and self._is_useful_cn_text(main_products):
+                    mover.main_products = main_products
+                if move_reason and self._is_useful_cn_text(move_reason):
+                    mover.move_reason = move_reason
+                self._apply_compact_fields(mover)
 
     async def _generate_ai_insights(
         self,
@@ -1155,6 +1240,25 @@ class FinanceDigestRunner:
         mover.move_reason = self._normalize_chinese_text(
             mover.move_reason or "",
             fallback=specific_reason,
+        )
+        self._apply_compact_fields(mover)
+
+    def _apply_compact_fields(self, mover: MarketMover) -> None:
+        mover.company_intro = MarketMover._compact_text(
+            mover.company_intro,
+            32,
+            fallback="业务信息仍在补充。",
+        )
+        mover.main_products = MarketMover._compact_text(
+            mover.main_products,
+            32,
+            fallback="核心产品信息仍在补充。",
+        )
+        move_reason = re.sub(r"^(新闻线索显示|公开信息显示)[，,:：]?", "", (mover.move_reason or mover.catalyst or "")).strip()
+        mover.move_reason = MarketMover._compact_text(
+            move_reason,
+            40,
+            fallback="暂无明确单一催化，更像板块情绪与资金共振。",
         )
 
     def _build_company_intro(self, mover: MarketMover, sentences: list[str]) -> str:
