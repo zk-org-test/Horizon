@@ -12,6 +12,7 @@ from typing import Any, Optional
 
 import feedparser
 import httpx
+from ddgs import DDGS
 from bs4 import BeautifulSoup
 
 from ..ai.client import AIClient
@@ -35,6 +36,10 @@ AI_TOPIC_ZH = {
     "Developer Tools": "开发工具",
     "Data": "数据",
     "Design": "设计创作",
+    "Open Source": "开源",
+    "Productivity": "效率办公",
+    "Machine Learning": "机器学习",
+    "Automation": "自动化",
 }
 
 
@@ -69,6 +74,7 @@ class AIProject:
     summary_zh: Optional[str] = None
     name_zh: Optional[str] = None
     why_cn: Optional[str] = None
+    research_context: list[str] | None = None
 
     def to_line(self) -> str:
         display_name = self.name if not self.name_zh else f"{self.name}（{self.name_zh}）"
@@ -102,6 +108,7 @@ class AIDigestRunner:
         current = now or datetime.now(timezone.utc)
         github_items = await self._fetch_github_trending()
         product_hunt_items = await self._fetch_product_hunt(current)
+        await self._enrich_projects(github_items, product_hunt_items)
         await self._localize_projects(github_items + product_hunt_items)
 
         all_items = github_items + product_hunt_items
@@ -147,6 +154,62 @@ class AIDigestRunner:
             project.category = classify_ai_category(project.name, project.description, project.topics)
             projects.append(project)
         return projects
+
+    async def _enrich_projects(
+        self,
+        github_items: list[AIProject],
+        product_hunt_items: list[AIProject],
+    ) -> None:
+        await asyncio.gather(
+            *(self._enrich_github_project(project) for project in github_items),
+            *(self._enrich_product_hunt_project(project) for project in product_hunt_items),
+        )
+
+    async def _enrich_github_project(self, project: AIProject) -> None:
+        owner_repo = self._extract_github_repo(project)
+        if owner_repo:
+            repo_info, readme = await asyncio.gather(
+                self._fetch_github_repo_info(owner_repo),
+                self._fetch_github_readme(owner_repo),
+            )
+            if repo_info:
+                description = str(repo_info.get("description") or "").strip()
+                if description:
+                    project.description = description
+                topics = [str(topic) for topic in repo_info.get("topics") or [] if topic]
+                if topics:
+                    project.topics = list(dict.fromkeys(topics + project.topics))
+                homepage = str(repo_info.get("homepage") or "").strip()
+                if homepage:
+                    page_summary = await self._fetch_page_summary(homepage)
+                    if page_summary:
+                        project.research_context = (project.research_context or []) + [page_summary]
+            if readme:
+                project.research_context = (project.research_context or []) + [readme]
+
+        search_context = await asyncio.to_thread(self._search_public_context, project.name, "github")
+        if search_context:
+            project.research_context = (project.research_context or []) + search_context
+
+        project.topics = list(dict.fromkeys(project.topics))
+        project.category = classify_ai_category(
+            project.name,
+            " ".join([project.description] + (project.research_context or [])),
+            project.topics,
+        )
+
+    async def _enrich_product_hunt_project(self, project: AIProject) -> None:
+        page_summary = await self._fetch_page_summary(project.url)
+        if page_summary:
+            project.research_context = (project.research_context or []) + [page_summary]
+        search_context = await asyncio.to_thread(self._search_public_context, project.name, "product_hunt")
+        if search_context:
+            project.research_context = (project.research_context or []) + search_context
+        project.category = classify_ai_category(
+            project.name,
+            " ".join([project.description] + (project.research_context or [])),
+            project.topics,
+        )
 
     async def _fetch_product_hunt(self, current: datetime) -> list[AIProject]:
         token = os.getenv(self.config.product_hunt_token_env)
@@ -363,10 +426,14 @@ class AIDigestRunner:
                     "category": project.category,
                     "description": project.description,
                     "topics": [AI_TOPIC_ZH.get(topic, topic) for topic in project.topics[:3]],
+                    "research_context": (project.research_context or [])[:4],
                 }
                 for project in batch
             ]
-            system = "你是一名双语 AI 产品分析师。请把项目摘要和分类转成自然中文，只返回 JSON。"
+            system = (
+                "你是一名双语 AI 产品分析师。请把项目摘要、亮点和分类全部转成自然中文，只返回 JSON。"
+                "输出必须以中文为主，保留仓库名或产品名原文作为标识，不要直接复制长段英文。"
+            )
             user = (
                 '返回 JSON：{"items":[{"name":"","name_zh":"","summary_zh":"","why_cn":"","category_zh":""}]}\n'
                 f"项目列表：{payload}"
@@ -384,7 +451,7 @@ class AIDigestRunner:
             for project in batch:
                 item = localized_map.get(project.name, {})
                 project.name_zh = str(item.get("name_zh") or "").strip() or None
-                project.summary_zh = str(item.get("summary_zh") or "").strip() or project.description
+                project.summary_zh = str(item.get("summary_zh") or "").strip() or self._fallback_project_summary(project)
                 project.why_cn = str(item.get("why_cn") or "").strip() or None
                 category_zh = str(item.get("category_zh") or "").strip()
                 if category_zh:
@@ -403,3 +470,95 @@ class AIDigestRunner:
             if any(hint in lowered for hint in hints):
                 keywords.append(label)
         return keywords
+
+    @staticmethod
+    def _extract_github_repo(project: AIProject) -> Optional[str]:
+        if "/" in project.name and project.name.count("/") == 1:
+            return project.name
+        if "github.com/" in project.url:
+            return project.url.split("github.com/", 1)[1].strip("/").split("/issues", 1)[0]
+        return None
+
+    async def _fetch_github_repo_info(self, owner_repo: str) -> dict[str, Any]:
+        headers = {"Accept": "application/vnd.github+json"}
+        token = os.getenv("GITHUB_TOKEN")
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        try:
+            response = await self.http_client.get(
+                f"https://api.github.com/repos/{owner_repo}",
+                headers=headers,
+                timeout=20.0,
+            )
+        except httpx.HTTPError:
+            return {}
+        if response.status_code != 200:
+            return {}
+        return response.json()
+
+    async def _fetch_github_readme(self, owner_repo: str) -> Optional[str]:
+        headers = {"Accept": "application/vnd.github.raw+json"}
+        token = os.getenv("GITHUB_TOKEN")
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        try:
+            response = await self.http_client.get(
+                f"https://api.github.com/repos/{owner_repo}/readme",
+                headers=headers,
+                timeout=20.0,
+            )
+        except httpx.HTTPError:
+            return None
+        if response.status_code != 200:
+            return None
+        text = response.text.strip()
+        return self._html_to_text(text)[:800] if text else None
+
+    async def _fetch_page_summary(self, url: str) -> Optional[str]:
+        if not url:
+            return None
+        try:
+            response = await self.http_client.get(url, timeout=15.0, follow_redirects=True)
+        except httpx.HTTPError:
+            return None
+        if response.status_code >= 400:
+            return None
+        soup = BeautifulSoup(response.text, "html.parser")
+        title = (soup.title.string or "").strip() if soup.title and soup.title.string else ""
+        meta = (
+            soup.find("meta", attrs={"name": "description"})
+            or soup.find("meta", attrs={"property": "og:description"})
+        )
+        desc = str(meta.get("content") or "").strip() if meta else ""
+        parts = [part for part in [title, desc] if part]
+        return " - ".join(parts)[:280] if parts else None
+
+    @staticmethod
+    def _search_public_context(name: str, source: str) -> list[str]:
+        import sys
+
+        query = f"{name} {'github project' if source == 'github' else 'product hunt ai product'}"
+        snippets: list[str] = []
+        stderr = sys.stderr
+        sys.stderr = open(os.devnull, "w")
+        try:
+            ddgs = DDGS()
+            results = ddgs.text(query, max_results=3)
+            for item in results or []:
+                title = str(item.get("title") or "").strip()
+                body = str(item.get("body") or "").strip()
+                line = " - ".join(part for part in [title, body] if part)
+                if line:
+                    snippets.append(line[:280])
+        except Exception:
+            return []
+        finally:
+            sys.stderr.close()
+            sys.stderr = stderr
+        return snippets[:3]
+
+    @staticmethod
+    def _fallback_project_summary(project: AIProject) -> str:
+        topic_text = "、".join(AI_TOPIC_ZH.get(topic, topic) for topic in project.topics[:3]) or "AI工具"
+        context = (project.research_context or [project.description])[0] if (project.research_context or project.description) else ""
+        return f"该项目聚焦{topic_text}，当前最值得关注的是：{context[:120] or project.name}。"
