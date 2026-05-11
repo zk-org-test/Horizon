@@ -6,66 +6,83 @@ lang: zh
 kind: finance
 ---
 
-昨日港股强于美股，最集中的方向是 未分类 / 未分类。
+> 昨日港股整体强于美股，热度集中在 未分类 / 未分类。
 
-## 昨日美股 Top 20
+## 先看结论
 
-- `INOD` Innodata Inc +85.75% | Information Technology / IT Services
-- `RKLB` Rocket Lab Corp +34.44% | Industrials / Aerospace & Defense
-- `FLNC` Fluence Energy Inc +27.36% | Utilities / Independent Power and Renewable Electricity Producers
-- `AKAM` Akamai Technologies Inc +26.58% | Information Technology / Software
-- `EOSE` Eos Energy Enterprises Inc +25.94% | Industrials / Electrical Equipment
-- `FROG` Jfrog Ltd +23.73% | Information Technology / Software
-- `FLY` Firefly Aerospace Inc +22.62% | Industrials / Aerospace & Defense
-- `MXL` Maxlinear Inc +21.20% | Information Technology / Semiconductors & Semiconductor Equipment
-- `WSC` Willscot Holdings Corp +20.60% | Industrials / Commercial Services & Supplies
-- `RDW` Redwire Corp +20.33% | Industrials / Aerospace & Defense
-- `LUNR` Intuitive Machines Inc +20.16% | Industrials / Aerospace & Defense
-- `NSIT` Insight Enterprises Inc +19.07% | Information Technology / Distributors
-- `CALY` Callaway Golf Co +18.62% | Consumer Cyclical / Leisure
-- `SYNA` Synaptics Inc +18.55% | Information Technology / Semiconductors & Semiconductor Equipment
-- `SNDK` Sandisk Corp +16.60% | Information Technology / Semiconductors & Semiconductor Equipment
-- `PS` Pershing Square Holdco, L.P. +15.80% | 未分类 / 未分类
-- `MU` Micron Technology Inc +15.51% | Information Technology / Semiconductors & Semiconductor Equipment
-- `NVTS` Navitas Semiconductor Corp +15.26% | Information Technology / Semiconductors & Semiconductor Equipment
-- `DBX` Dropbox Inc +15.00% | Information Technology / Software
-- `ASTS` Ast Spacemobile Inc +14.85% | Information Technology / Communications Equipment
+- 美股主线：科技。
+- 港股主线：未分类。
+- 全市场热度最高方向：未分类。
+- 当前总龙头：1236.HK（Shenzhen Ldrobot Co., Ltd，+132.36%）。
 
-## 昨日港股 Top 20
+## 板块热度榜
 
-- `1236.HK` Shenzhen Ldrobot Co., Ltd +133.31% | 未分类 / 未分类
-- `2339.HK` BWI INT'L +46.87% | 未分类 / 未分类
-- `0465.HK` FUTONG TECH +40.07% | Technology / Technology
-- `2946.HK` EASYHOLD GROUP +31.87% | 未分类 / 未分类
-- `0482.HK` SANDMARTIN INTL +29.03% | 未分类 / 未分类
-- `21238.HK` 21238.HK +29.03% | 未分类 / 未分类
-- `27355.HK` 27355.HK +28.00% | 未分类 / 未分类
-- `2355.HK` BAOYE GROUP +25.95% | 未分类 / 未分类
-- `3816.HK` KFM KINGDOM +23.49% | 未分类 / 未分类
-- `27706.HK` 27706.HK +22.39% | 未分类 / 未分类
-- `27769.HK` BP-GWMC@EC1902A +22.09% | 未分类 / 未分类
-- `27273.HK` 27273.HK +21.74% | 未分类 / 未分类
-- `8160.HK` GOLDWAY EDU +21.57% | Materials / Materials
-- `2567.HK` QINIU +21.21% | 未分类 / 未分类
-- `0731.HK` C&D NEWIN +20.88% | 未分类 / 未分类
-- `27316.HK` 27316.HK +20.88% | 未分类 / 未分类
-- `23886.HK` 23886.HK +20.37% | 未分类 / 未分类
-- `25545.HK` 25545.HK +20.37% | 未分类 / 未分类
-- `1300.HK` TRIGIANT +19.88% | 未分类 / 未分类
-- `2631.HK` SICC +19.57% | 未分类 / 未分类
+1. 未分类：15 家上榜，平均 +31.11% ，龙头 1236.HK（Shenzhen Ldrobot Co., Ltd）
+2. 科技：15 家上榜，平均 +24.36% ，龙头 INOD（Innodata Inc）
+3. 工业：6 家上榜，平均 +24.02% ，龙头 RKLB（Rocket Lab Corp）
+4. 材料：2 家上榜，平均 +18.38% ，龙头 8160.HK（GOLDWAY EDU）
+5. Utilities：1 家上榜，平均 +27.36% ，龙头 FLNC（Fluence Energy Inc）
 
-## 最强板块与龙头
+## 昨日美股 Top 20 焦点
+
+1. `INOD` Innodata Inc | +85.75% | 分类：科技 / IT服务
+2. `RKLB` Rocket Lab Corp | +34.44% | 分类：工业 / 航空航天
+3. `FLNC` Fluence Energy Inc | +27.36% | 分类：Utilities / Independent Power and Renewable Electricity Producers
+4. `AKAM` Akamai Technologies Inc | +26.58% | 分类：科技 / 软件
+5. `EOSE` Eos Energy Enterprises Inc | +25.94% | 分类：工业 / Electrical Equipment
+6. `FROG` Jfrog Ltd | +23.73% | 分类：科技 / 软件
+7. `FLY` Firefly Aerospace Inc | +22.62% | 分类：工业 / 航空航天
+8. `MXL` Maxlinear Inc | +21.20% | 分类：科技 / Semiconductors & Semiconductor Equipment
+9. `WSC` Willscot Holdings Corp | +20.60% | 分类：工业 / Commercial Services & Supplies
+10. `RDW` Redwire Corp | +20.33% | 分类：工业 / 航空航天
+11. `LUNR` Intuitive Machines Inc | +20.16% | 分类：工业 / 航空航天
+12. `NSIT` Insight Enterprises Inc | +19.07% | 分类：科技 / Distributors
+13. `CALY` Callaway Golf Co | +18.62% | 分类：可选消费 / Leisure
+14. `SYNA` Synaptics Inc | +18.55% | 分类：科技 / Semiconductors & Semiconductor Equipment
+15. `SNDK` Sandisk Corp | +16.60% | 分类：科技 / Semiconductors & Semiconductor Equipment
+16. `MU` Micron Technology Inc | +15.51% | 分类：科技 / Semiconductors & Semiconductor Equipment
+17. `NVTS` Navitas Semiconductor Corp | +15.26% | 分类：科技 / Semiconductors & Semiconductor Equipment
+18. `DBX` Dropbox Inc | +15.00% | 分类：科技 / 软件
+19. `ASTS` Ast Spacemobile Inc | +14.85% | 分类：科技 / Communications Equipment
+20. `CVSA` Covista Inc. | +14.30% | 分类：未分类
+
+## 昨日港股 Top 20 焦点
+
+1. `1236.HK` Shenzhen Ldrobot Co., Ltd | +132.36% | 分类：未分类
+2. `2339.HK` BWI INT'L | +47.32% | 分类：未分类
+3. `0465.HK` FUTONG TECH | +43.00% | 分类：科技
+4. `2567.HK` QINIU | +33.33% | 分类：未分类
+5. `2946.HK` EASYHOLD GROUP | +31.87% | 分类：未分类
+6. `2355.HK` BAOYE GROUP | +28.13% | 分类：未分类
+7. `0482.HK` SANDMARTIN INTL | +27.42% | 分类：未分类
+8. `3816.HK` KFM KINGDOM | +25.30% | 分类：未分类
+9. `8160.HK` GOLDWAY EDU | +21.57% | 分类：材料
+10. `0731.HK` C&D NEWIN | +20.88% | 分类：未分类
+11. `1300.HK` TRIGIANT | +20.48% | 分类：未分类
+12. `1912.HK` CONTEL | +19.15% | 分类：未分类
+13. `6809.HK` MONTAGE TECH | +18.05% | 分类：科技
+14. `2591.HK` INNOGEN-B | +17.79% | 分类：未分类
+15. `1087.HK` INVESTECH HLDGS | +17.65% | 分类：科技
+16. `2631.HK` SICC | +16.88% | 分类：未分类
+17. `0532.HK` WKK INTL (HOLD) | +16.00% | 分类：未分类
+18. `0745.HK` CN CULTURE GP | +15.38% | 分类：未分类
+19. `1328.HK` GOLDSTREAM INV | +15.19% | 分类：材料
+20. `6933.HK` SINO-ENTERTAIN | +14.63% | 分类：科技
+
+## 核心龙头
 
 - 最强板块：未分类
 - 最强细分行业：未分类
-- 龙头：1236.HK (Shenzhen Ldrobot Co., Ltd, +133.31%)
+- 总龙头：1236.HK（Shenzhen Ldrobot Co., Ltd，+132.36%）
 
 ## 上涨原因归因
 
-- 公开新闻信号有限，主要仍是主题轮动与事件驱动。
+- 高弹性成长股集体走强，说明短线风险偏好明显回升。
+- 上榜个股集中在科技、能源或题材股，更多体现交易型资金抱团。
+- 公开公告与新闻信号不足，部分走势仍可能是事件驱动后的情绪放大。
 
 ## 后续趋势判断
 
-龙头 1236.HK (Shenzhen Ldrobot Co., Ltd, +133.31%) 带动的 未分类 板块短线仍有延续可能，但需要观察下一交易日是否有量能跟随。
+未分类 方向短线仍可能延续，但更大概率出现“主线延续、个股分化”结构；判断关键在于次日是否继续放量、龙头是否保持强势。
 
-公开新闻信号不足，结论主要基于涨幅榜结构与行业集中度。
+当前总龙头是 1236.HK（Shenzhen Ldrobot Co., Ltd，+132.36%），但公开新闻不足，结论主要基于榜单结构与涨幅分布。
