@@ -121,13 +121,18 @@ class AIProject:
     research_context: list[str] | None = None
     topics_zh: list[str] | None = None
 
-    def to_line(self) -> str:
+    def to_group_block(self, rank: int) -> str:
         display_name = self.name if not self.name_zh else f"{self.name}（{self.name_zh}）"
-        zh_topics = self.topics_zh or self._fallback_topics()
-        topic_part = f" | 主题：{', '.join(zh_topics)}" if zh_topics else ""
-        metric = f" | 热度：{self.votes}" if self.votes is not None else ""
-        summary = self.summary_zh or self.description
-        return f"- #{self.rank} [{display_name}]({self.url})：{summary} | 分类：{self.category_zh}{topic_part}{metric}"
+        source_text = "GitHub" if self.source == "github_trending" else "Product Hunt"
+        tags = "、".join((self.topics_zh or self._fallback_topics())[:3]) or self.category_zh
+        summary = self._compact_text(self.summary_zh or self.description, 44, fallback="项目简介仍在补充。")
+        why = self._compact_text(self.why_cn, 48, fallback=f"{display_name} 所在方向近期热度较高。")
+        return (
+            f"{rank}. [{display_name}]({self.url}) | {source_text} #{self.rank}\n"
+            f"   做什么：{summary}\n"
+            f"   标签：{tags}\n"
+            f"   看点：{why}"
+        )
 
     @property
     def category_zh(self) -> str:
@@ -135,6 +140,16 @@ class AIProject:
 
     def _fallback_topics(self) -> list[str]:
         return AIDigestRunner._fallback_topics_zh(self)
+
+    @staticmethod
+    def _compact_text(text: Optional[str], max_len: int, fallback: str) -> str:
+        normalized = re.sub(r"\s+", " ", (text or "").strip())
+        if not normalized:
+            return fallback
+        normalized = normalized.rstrip("。；;,. ")
+        if len(normalized) > max_len:
+            normalized = normalized[: max_len - 1].rstrip("，、； ") + "…"
+        return normalized
 
 
 class AIDigestRunner:
@@ -167,15 +182,15 @@ class AIDigestRunner:
 
         all_items = github_items + product_hunt_items
         counts = Counter(item.category for item in all_items)
-        category_lines = [f"- {AI_CATEGORY_ZH.get(name, name)}：{count} 个项目" for name, count in counts.most_common()]
+        category_groups = self._build_category_groups(all_items)
+        category_lines = self._build_category_breakdown(category_groups)
 
         insights = await self._generate_ai_insights(github_items, product_hunt_items, counts)
         summary = AiDigestSummary(
             date=current.strftime("%Y-%m-%d"),
             headline=insights["headline"],
-            github_trending=[item.to_line() for item in github_items],
-            product_hunt=[item.to_line() for item in product_hunt_items],
             category_breakdown=category_lines,
+            category_groups=category_groups,
             notable_projects=insights["notable_projects"],
             trend_outlook=insights["trend_outlook"],
         )
@@ -187,6 +202,45 @@ class AIDigestRunner:
             "date": summary.date,
             "lang": self.config.language,
         }
+
+    def _build_category_groups(self, projects: list[AIProject]) -> list[dict[str, Any]]:
+        grouped: list[dict[str, Any]] = []
+        categories = sorted(
+            {project.category for project in projects},
+            key=lambda category: self._category_sort_key(category, projects),
+        )
+        for category in categories:
+            entries = sorted(
+                [project for project in projects if project.category == category],
+                key=lambda item: (item.rank, 0 if item.source == "github_trending" else 1),
+            )
+            github_count = sum(1 for item in entries if item.source == "github_trending")
+            product_hunt_count = len(entries) - github_count
+            heading = f"{AI_CATEGORY_ZH.get(category, category)}（{len(entries)}个项目｜GitHub {github_count}｜PH {product_hunt_count}）"
+            grouped.append(
+                {
+                    "heading": heading,
+                    "items": [entry.to_group_block(index) for index, entry in enumerate(entries, start=1)],
+                }
+            )
+        return grouped
+
+    def _build_category_breakdown(self, groups: list[dict[str, Any]]) -> list[str]:
+        lines: list[str] = []
+        for index, group in enumerate(groups, start=1):
+            heading = str(group.get("heading") or "未分类")
+            lines.append(f"{index}. {heading}")
+        return lines or ["- 暂无分类热度"]
+
+    @staticmethod
+    def _category_sort_key(category: str, projects: list[AIProject]) -> tuple[int, float, float]:
+        entries = [project for project in projects if project.category == category]
+        if not entries:
+            return (0, 0.0, 0.0)
+        count = len(entries)
+        best_rank_score = max((100 - entry.rank) for entry in entries)
+        vote_score = max(float(entry.votes or 0) for entry in entries)
+        return (-count, -best_rank_score, -vote_score)
 
     async def _fetch_github_trending(self) -> list[AIProject]:
         feed_url = self._find_feed_url(self.config.github_feed_name)

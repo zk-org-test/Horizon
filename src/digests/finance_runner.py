@@ -280,30 +280,31 @@ class MarketMover:
             return f"[`{self.symbol}`]({self.source_url})"
         return f"`{self.symbol}`"
 
-    def to_brief_line(self, rank: int) -> str:
-        category = self.sector_zh or "未分类"
-        subcategory = self.industry_zh or "未分类"
-        category_text = category if category == subcategory else f"{category} / {subcategory}"
-        short_reason = (self.move_reason or self.catalyst or "").strip()
-        catalyst = f" | 触发：{short_reason[:72]}" if short_reason else ""
+    def to_group_block(self, rank: int) -> str:
+        subcategory = self.industry_zh or self.sector_zh or "未分类"
+        intro = self._compact_text(self.company_intro, 44, fallback="业务信息仍在补充。")
+        products = self._compact_text(self.main_products, 44, fallback="核心产品信息仍在补充。")
+        reason = self._compact_text(
+            self.move_reason or self.catalyst,
+            52,
+            fallback="暂无明确单一催化，更像板块情绪与资金共振。",
+        )
         return (
-            f"{rank}. {self.linked_symbol} {self.display_name} | {self.change_pct:+.2f}%"
-            f" | 分类：{category_text}{catalyst}"
+            f"{rank}. {self.linked_symbol} {self.display_name} | {self.change_pct:+.2f}% | {subcategory}\n"
+            f"   做什么：{intro}\n"
+            f"   产品：{products}\n"
+            f"   催化：{reason}"
         )
 
-    def to_focus_block(self, rank: int) -> str:
-        category = self.sector_zh or "未分类"
-        subcategory = self.industry_zh or "未分类"
-        category_text = category if category == subcategory else f"{category} / {subcategory}"
-        intro = self.company_intro or "公司介绍待补充。"
-        products = self.main_products or "主要产品信息待补充。"
-        reason = self.move_reason or self.catalyst or "暂未识别到明确催化，更多体现题材与资金偏好。"
-        return (
-            f"{rank}. {self.linked_symbol} {self.display_name} | {self.change_pct:+.2f}% | 分类：{category_text}\n"
-            f"   公司：{intro}\n"
-            f"   产品：{products}\n"
-            f"   走强原因：{reason}"
-        )
+    @staticmethod
+    def _compact_text(text: Optional[str], max_len: int, fallback: str) -> str:
+        normalized = re.sub(r"\s+", " ", (text or "").strip())
+        if not normalized:
+            return fallback
+        normalized = normalized.rstrip("。；;,. ")
+        if len(normalized) > max_len:
+            normalized = normalized[: max_len - 1].rstrip("，、； ") + "…"
+        return normalized
 
 
 class FinancialDatasetsClient:
@@ -415,10 +416,10 @@ class FinanceDigestRunner:
             market_summary=ai_insights["market_summary"],
             overview_points=overview_points,
             heat_rankings=heat_rankings,
-            us_focus_movers=[item.to_focus_block(index) for index, item in enumerate(us_top[:5], start=1)],
-            hk_focus_movers=[item.to_focus_block(index) for index, item in enumerate(hk_top[:5], start=1)],
-            us_more_movers=[item.to_brief_line(index) for index, item in enumerate(us_top[5:], start=6)],
-            hk_more_movers=[item.to_brief_line(index) for index, item in enumerate(hk_top[5:], start=6)],
+            market_groups=[
+                self._build_market_group_section("美股分类看板", us_top),
+                self._build_market_group_section("港股分类看板", hk_top),
+            ],
             strongest_sector=strongest_sector,
             strongest_industry=strongest_industry,
             leader=leader,
@@ -433,6 +434,42 @@ class FinanceDigestRunner:
             "summary": markdown,
             "date": summary.date,
             "lang": self.config.language,
+        }
+
+    def _build_market_group_section(self, title: str, movers: list[MarketMover]) -> dict[str, Any]:
+        ranking = rank_heat_groups(
+            [
+                {
+                    "sector_zh": mover.sector_zh,
+                    "change_pct": mover.change_pct,
+                    "symbol": mover.symbol,
+                    "display_name": mover.display_name,
+                }
+                for mover in movers
+            ],
+            "sector_zh",
+            top_n=max(len({mover.sector_zh for mover in movers}), 1),
+        )
+        groups: list[dict[str, Any]] = []
+        for ranked_group in ranking:
+            label = str(ranked_group["label"])
+            entries = sorted(
+                [mover for mover in movers if (mover.sector_zh or "未分类") == label],
+                key=lambda item: item.change_pct,
+                reverse=True,
+            )
+            groups.append(
+                {
+                    "heading": (
+                        f"{label}（{ranked_group['count']}家｜平均 {ranked_group['avg_change']:+.2f}%｜"
+                        f"龙头 {ranked_group['leader_symbol']}）"
+                    ),
+                    "items": [entry.to_group_block(index) for index, entry in enumerate(entries, start=1)],
+                }
+            )
+        return {
+            "title": title,
+            "groups": groups,
         }
 
     def _fetch_market_movers(self, market: str, candidate_limit: int) -> list[MarketMover]:

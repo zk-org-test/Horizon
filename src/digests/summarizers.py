@@ -12,10 +12,7 @@ class FinanceDigestSummary:
     market_summary: str
     overview_points: list[str]
     heat_rankings: list[str]
-    us_focus_movers: list[Any]
-    hk_focus_movers: list[Any]
-    us_more_movers: list[Any]
-    hk_more_movers: list[Any]
+    market_groups: list[Any]
     strongest_sector: str
     strongest_industry: str
     leader: Any
@@ -28,9 +25,8 @@ class FinanceDigestSummary:
 class AiDigestSummary:
     date: str
     headline: str
-    github_trending: list[Any]
-    product_hunt: list[Any]
     category_breakdown: Any
+    category_groups: list[Any]
     notable_projects: list[Any]
     trend_outlook: str
 
@@ -50,14 +46,7 @@ class FinanceSummarizer:
         lines.extend([f"- {item}" for item in summary.overview_points] or ["- 暂无结论"])
         lines.extend(["", "## 板块热度榜", ""])
         lines.extend(summary.heat_rankings or ["- 暂无热度排名"])
-        lines.extend(["", "## 昨日美股重点公司", ""])
-        lines.extend(self._render_lines(summary.us_focus_movers))
-        lines.extend(["", "## 其余美股上榜速览", ""])
-        lines.extend(self._render_lines(summary.us_more_movers))
-        lines.extend(["", "## 昨日港股重点公司", ""])
-        lines.extend(self._render_lines(summary.hk_focus_movers))
-        lines.extend(["", "## 其余港股上榜速览", ""])
-        lines.extend(self._render_lines(summary.hk_more_movers))
+        lines.extend(self._render_group_sections(summary.market_groups))
         lines.extend(
             [
                 "",
@@ -98,6 +87,28 @@ class FinanceSummarizer:
             ).strip()
         return "暂无明显龙头"
 
+    @classmethod
+    def _render_group_sections(cls, sections: list[Any]) -> list[str]:
+        if not sections:
+            return ["", "## 分类看板", "", "- 暂无数据"]
+
+        rendered: list[str] = []
+        for section in sections:
+            title = str(section.get("title") or "分类看板")
+            rendered.extend(["", f"## {title}", ""])
+            groups = section.get("groups") or []
+            if not groups:
+                rendered.append("- 暂无数据")
+                continue
+            for group in groups:
+                heading = str(group.get("heading") or "未分类")
+                rendered.append(f"### {heading}")
+                rendered.extend(cls._render_lines(group.get("items") or []))
+                rendered.append("")
+        while rendered and not rendered[-1]:
+            rendered.pop()
+        return rendered
+
 
 class AiSummarizer:
     """Render an AI digest summary as markdown."""
@@ -107,49 +118,37 @@ class AiSummarizer:
             f"# AI 日报 | {summary.date}",
             "",
             summary.headline,
-            "",
-            "## GitHub Trending 榜单",
-            "",
         ]
-        lines.extend(self._render_projects(summary.github_trending))
-        lines.extend(["", "## Product Hunt 榜单", ""])
-        lines.extend(self._render_projects(summary.product_hunt))
         lines.extend(["", "## 分类热度榜", ""])
         if isinstance(summary.category_breakdown, dict):
             lines.extend([f"- {category}: {count}" for category, count in summary.category_breakdown.items()])
         else:
             lines.extend(list(summary.category_breakdown))
-        lines.extend(["", "## 值得关注的项目", ""])
-        for project in summary.notable_projects:
-            if isinstance(project, str):
-                lines.append(f"- {project}")
-                continue
-            lines.append(
-                "- {name} [{source}] | {category} | {reason}".format(
-                    name=project.get("name", "未知项目"),
-                    source=project.get("source", "unknown"),
-                    category=project.get("category", "未分类"),
-                    reason=project.get("reason", ""),
-                )
-            )
+        lines.extend(["", "## 分类项目看板", ""])
+        lines.extend(self._render_category_groups(summary.category_groups))
         lines.extend(["", "## 后续趋势判断", "", summary.trend_outlook])
         return "\n".join(lines).strip() + "\n"
 
     @staticmethod
-    def _render_projects(items: list[dict[str, Any]]) -> list[str]:
+    def _render_lines(items: list[Any]) -> list[str]:
         if not items:
             return ["- 暂无数据"]
 
         rendered = []
         for item in items:
-            if isinstance(item, str):
-                rendered.append(item)
-                continue
-            rendered.append(
-                "- {name} | 分类：{category} | {why}".format(
-                    name=item.get("name", "未知项目"),
-                    category=item.get("category", "未分类"),
-                    why=item.get("why_interesting", item.get("description", "")),
-                )
-            )
+            rendered.append(item if isinstance(item, str) else str(item))
+        return rendered
+
+    @classmethod
+    def _render_category_groups(cls, groups: list[dict[str, Any]]) -> list[str]:
+        if not groups:
+            return ["- 暂无数据"]
+
+        rendered: list[str] = []
+        for group in groups:
+            rendered.append(f"### {group.get('heading', '未分类')}")
+            rendered.extend(cls._render_lines(group.get("items") or []))
+            rendered.append("")
+        while rendered and not rendered[-1]:
+            rendered.pop()
         return rendered
