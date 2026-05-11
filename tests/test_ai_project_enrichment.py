@@ -57,3 +57,48 @@ def test_needs_project_localization_flags_english_summary():
     )
 
     assert AIDigestRunner._needs_project_localization(project)
+
+
+def test_fallback_project_summary_returns_chinese_without_raw_english_context():
+    project = AIProject(
+        source="product_hunt",
+        rank=1,
+        name="Glowix",
+        description="",
+        url="https://www.producthunt.com/products/glowix",
+        topics=["Artificial Intelligence", "Design"],
+        category="Design",
+        research_context=["Artificial Intelligence - Product Hunt - Artificial intelligence powers products..."],
+    )
+
+    summary = AIDigestRunner._fallback_project_summary(project)
+
+    assert "Artificial Intelligence - Product Hunt" not in summary
+    assert "围绕" in summary
+    assert "关注度较高" in summary
+
+
+def test_normalize_chinese_project_text_replaces_product_hunt_boilerplate():
+    text = "该项目聚焦AI工具，当前最值得关注的是：Artificial Intelligence - Product Hunt - Artificial intelligence powers products。"
+
+    normalized = AIDigestRunner._normalize_chinese_project_text(text, fallback="这是中文兜底。")
+
+    assert "Product Hunt" not in normalized
+    assert "人工智能相关方向近期关注度较高" in normalized
+
+
+def test_fallback_topics_zh_translates_english_repo_tags():
+    project = AIProject(
+        source="github_trending",
+        rank=1,
+        name="demo/repo",
+        description="",
+        url="https://github.com/demo/repo",
+        topics=["browser-use", "ai-agents", "coding"],
+        category="Agent",
+    )
+
+    topics = AIDigestRunner._fallback_topics_zh(project)
+
+    assert "浏览器自动化" in topics
+    assert any("智能体" in topic or "人工智能" in topic for topic in topics)

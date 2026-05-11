@@ -99,6 +99,16 @@ SECTOR_ZH_MAP = {
     "Distributors": "分销商",
     "Independent Power and Renewable Electricity Producers": "独立电力与新能源发电",
     "Aerospace & Defense": "航空航天与国防",
+    "Utilities - Renewable": "新能源公用事业",
+    "Electrical Equipment & Parts": "电气设备与零部件",
+    "Software - Application": "应用软件",
+    "Rental & Leasing Services": "租赁服务",
+    "Electronics & Computer Distribution": "电子与计算机分销",
+    "Education & Training Services": "教育培训服务",
+    "Advertising Agencies": "广告营销",
+    "Semiconductor Equipment & Materials": "半导体设备与材料",
+    "Infrastructure Operations": "基建运营",
+    "Basic Materials": "基础材料",
 }
 
 
@@ -185,7 +195,8 @@ class MarketMover:
         category = self.sector_zh or "未分类"
         subcategory = self.industry_zh or "未分类"
         category_text = category if category == subcategory else f"{category} / {subcategory}"
-        catalyst = f" | 触发：{self.catalyst}" if self.catalyst else ""
+        short_reason = (self.move_reason or self.catalyst or "").strip()
+        catalyst = f" | 触发：{short_reason[:72]}" if short_reason else ""
         return (
             f"{rank}. {self.linked_symbol} {self.display_name} | {self.change_pct:+.2f}%"
             f" | 分类：{category_text}{catalyst}"
@@ -266,6 +277,11 @@ class FinanceDigestRunner:
         self.ai_client = ai_client
         self.http_client = http_client
         self.search_semaphore = asyncio.Semaphore(6)
+        self.enable_public_search = os.getenv("HORIZON_ENABLE_PUBLIC_SEARCH", "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+        }
         self.financial_client = FinancialDatasetsClient(
             os.getenv(config.financial_datasets_api_key_env),
             http_client,
@@ -288,7 +304,6 @@ class FinanceDigestRunner:
             *(self._enrich_mover(mover) for mover in hk_top),
         )
         await self._ai_label_movers(us_top + hk_top)
-        await self._normalize_movers_to_chinese(us_top + hk_top)
 
         all_top = us_top + hk_top
         strongest_sector = pick_strongest_group([asdict(item) for item in all_top], "sector_zh")
@@ -428,47 +443,60 @@ class FinanceDigestRunner:
         return []
 
     async def _enrich_mover(self, mover: MarketMover) -> None:
+        native_profile_task = asyncio.to_thread(self._fetch_yahoo_profile, mover.symbol)
+        native_news_task = asyncio.to_thread(self._fetch_yahoo_news, mover.symbol)
+
+        facts: dict[str, Any] = {}
+        fd_news: list[str] = []
         if mover.market == "us" and self.financial_client.enabled:
-            facts, news, earnings, filings = await asyncio.gather(
+            facts, news, earnings, filings, profile, yahoo_news = await asyncio.gather(
                 self.financial_client.get_company_facts(mover.symbol),
                 self.financial_client.get_news(mover.symbol),
                 self.financial_client.get_earnings(mover.symbol),
                 self.financial_client.get_filings(mover.symbol),
+                native_profile_task,
+                native_news_task,
             )
-            mover.name = str(facts.get("name") or mover.name)
-            mover.sector = str(facts.get("sector") or facts.get("sic_sector") or mover.sector)
-            mover.industry = str(facts.get("industry") or facts.get("sic_industry") or mover.industry)
-            mover.sector_zh = self._translate_sector(mover.sector)
-            mover.industry_zh = self._translate_industry(mover.industry, mover.sector_zh)
+            mover.name = str(facts.get("name") or profile.get("shortName") or profile.get("longName") or mover.name)
+            mover.sector = str(facts.get("sector") or facts.get("sic_sector") or profile.get("sector") or mover.sector)
+            mover.industry = str(
+                facts.get("industry") or facts.get("sic_industry") or profile.get("industry") or mover.industry
+            )
             mover.business_summary = str(
-                facts.get("description") or facts.get("business_description") or facts.get("sic_industry") or ""
+                facts.get("description")
+                or facts.get("business_description")
+                or profile.get("longBusinessSummary")
+                or facts.get("sic_industry")
+                or ""
             ).strip() or None
-            headlines = [str(item.get("title")) for item in news if item.get("title")]
+            fd_news = [self._format_financial_datasets_news(item) for item in news]
             if earnings:
-                headlines.insert(0, "近期有财报/业绩披露")
+                fd_news.insert(0, "近期披露财报或业绩更新。")
             if filings:
-                headlines.append("存在监管/公告文件更新")
-            mover.news_headlines = headlines[:3]
-            mover.catalyst = self._pick_catalyst(headlines[:3])
+                fd_news.append("近期存在监管文件或公告更新。")
+            mover.news_headlines = [line for line in fd_news + yahoo_news if line][:4]
         else:
-            profile = await asyncio.to_thread(self._fetch_yahoo_profile, mover.symbol)
+            profile, yahoo_news = await asyncio.gather(native_profile_task, native_news_task)
             if profile:
                 mover.name = str(profile.get("shortName") or profile.get("longName") or mover.name)
                 mover.sector = str(profile.get("sector") or mover.sector)
                 mover.industry = str(profile.get("industry") or mover.industry)
                 mover.business_summary = str(profile.get("longBusinessSummary") or "").strip() or None
-            if not mover.sector or mover.sector == "未分类":
-                mover.sector = self._infer_sector_from_name(mover.name)
-            if not mover.industry or mover.industry == "未分类":
-                mover.industry = self._infer_industry_from_name(mover.name, mover.sector)
-            mover.sector_zh = self._translate_sector(mover.sector)
-            mover.industry_zh = self._translate_industry(mover.industry, mover.sector_zh)
-            mover.news_headlines = []
-            mover.catalyst = None
+            mover.news_headlines = [line for line in yahoo_news if line][:4]
 
-        mover.search_context = await self._get_public_context(mover.symbol, mover.name, mover.market)
-        if mover.search_context and not mover.news_headlines:
-            mover.news_headlines = mover.search_context[:3]
+        if not mover.sector or mover.sector == "未分类":
+            mover.sector = self._infer_sector_from_name(mover.name)
+        if not mover.industry or mover.industry == "未分类":
+            mover.industry = self._infer_industry_from_name(mover.name, mover.sector)
+        mover.sector_zh = self._translate_sector(mover.sector)
+        mover.industry_zh = self._translate_industry(mover.industry, mover.sector_zh)
+        mover.catalyst = self._pick_catalyst(mover.news_headlines or [])
+
+        mover.search_context = []
+        if self.enable_public_search and self._should_use_public_search(mover):
+            mover.search_context = await self._get_public_context(mover.symbol, mover.name, mover.market)
+            if mover.search_context and not mover.news_headlines:
+                mover.news_headlines = mover.search_context[:3]
         if not mover.catalyst:
             mover.catalyst = self._pick_catalyst(mover.news_headlines or [])
 
@@ -524,72 +552,6 @@ class FinanceDigestRunner:
                 mover.company_intro = str(item.get("company_intro") or mover.company_intro or "").strip() or None
                 mover.main_products = str(item.get("main_products") or mover.main_products or "").strip() or None
                 mover.move_reason = str(item.get("move_reason") or mover.move_reason or "").strip() or None
-                self._apply_textual_fallbacks(mover)
-
-    async def _normalize_movers_to_chinese(self, movers: list[MarketMover]) -> None:
-        pending = [mover for mover in movers if self._mover_needs_localization(mover)]
-        if not pending:
-            return
-
-        for start in range(0, len(pending), 12):
-            batch = pending[start:start + 12]
-            payload = [
-                {
-                    "symbol": mover.symbol,
-                    "name_en": mover.name,
-                    "name_zh_hint": mover.name_zh,
-                    "sector_hint": mover.sector_zh or mover.sector,
-                    "industry_hint": mover.industry_zh or mover.industry,
-                    "company_intro": mover.company_intro,
-                    "main_products": mover.main_products,
-                    "move_reason": mover.move_reason,
-                    "business_summary": (mover.business_summary or "")[:1000],
-                    "search_context": (mover.search_context or [])[:3],
-                }
-                for mover in batch
-            ]
-            system = (
-                "你是一名中文投研编辑。请把字段统一改写为自然、简洁、专业的中文。"
-                "不要保留英文整句；行业分类必须给出中文一级分类和中文二级分类，即使需要基于业务与产品自行判断。"
-                "输出严格 JSON。"
-            )
-            user = (
-                '返回 JSON：{"items":[{"symbol":"","name_zh":"","sector_zh":"","industry_zh":"","company_intro":"","main_products":"","move_reason":""}]}\n'
-                f"股票列表：{payload}"
-            )
-            try:
-                response = await asyncio.wait_for(
-                    self.ai_client.complete(system=system, user=user, max_tokens=2600),
-                    timeout=30,
-                )
-                result = parse_json_response(response) or {}
-            except Exception:
-                result = {}
-
-            normalized_map = {str(item.get("symbol")): item for item in result.get("items", []) if item.get("symbol")}
-            for mover in batch:
-                item = normalized_map.get(mover.symbol, {})
-                mover.name_zh = str(item.get("name_zh") or mover.name_zh or "").strip() or mover.name_zh
-                mover.sector_zh = self._normalize_chinese_category(
-                    str(item.get("sector_zh") or mover.sector_zh or mover.sector),
-                    fallback=self._translate_sector(mover.sector),
-                )
-                mover.industry_zh = self._normalize_chinese_category(
-                    str(item.get("industry_zh") or mover.industry_zh or mover.industry),
-                    fallback=self._translate_industry(mover.industry, mover.sector_zh),
-                )
-                mover.company_intro = self._normalize_chinese_text(
-                    str(item.get("company_intro") or mover.company_intro or ""),
-                    fallback=mover.company_intro or mover.business_summary or "",
-                )
-                mover.main_products = self._normalize_chinese_text(
-                    str(item.get("main_products") or mover.main_products or ""),
-                    fallback=mover.main_products or mover.business_summary or "",
-                )
-                mover.move_reason = self._normalize_chinese_text(
-                    str(item.get("move_reason") or mover.move_reason or ""),
-                    fallback=mover.move_reason or mover.catalyst or "",
-                )
                 self._apply_textual_fallbacks(mover)
 
     async def _generate_ai_insights(
@@ -776,6 +738,33 @@ class FinanceDigestRunner:
             return {}
 
     @staticmethod
+    def _fetch_yahoo_news(symbol: str) -> list[str]:
+        if yf is None:
+            return []
+        try:
+            items = yf.Ticker(symbol).news or []
+        except Exception:
+            return []
+
+        headlines: list[str] = []
+        for item in items[:4]:
+            content = item.get("content") or {}
+            title = str(content.get("title") or item.get("title") or "").strip()
+            summary = str(content.get("summary") or item.get("summary") or "").strip()
+            line = " - ".join(part for part in [title, summary] if part)
+            cleaned = FinanceDigestRunner._clean_external_snippet(line)
+            if cleaned:
+                headlines.append(cleaned)
+        return headlines[:4]
+
+    @staticmethod
+    def _format_financial_datasets_news(item: dict[str, Any]) -> str:
+        title = str(item.get("title") or "").strip()
+        summary = str(item.get("summary") or item.get("snippet") or "").strip()
+        line = " - ".join(part for part in [title, summary] if part)
+        return FinanceDigestRunner._clean_external_snippet(line)
+
+    @staticmethod
     def _search_public_context(symbol: str, name: str, market: str) -> list[str]:
         queries = [f"{symbol} {name} {'Hong Kong' if market == 'hk' else 'US'} stock latest news products"]
         snippets: list[str] = []
@@ -809,11 +798,16 @@ class FinanceDigestRunner:
             except Exception:
                 return []
 
+    def _should_use_public_search(self, mover: MarketMover) -> bool:
+        if mover.market == "us" and mover.news_headlines and mover.business_summary:
+            return False
+        return not mover.news_headlines or not mover.business_summary
+
     def _apply_textual_fallbacks(self, mover: MarketMover) -> None:
         mover.sector_zh = self._translate_sector(mover.sector_zh or mover.sector)
         mover.industry_zh = self._translate_industry(mover.industry_zh or mover.industry, mover.sector_zh)
 
-        context_blocks = [mover.business_summary or ""] + (mover.search_context or []) + (mover.news_headlines or [])
+        context_blocks = [mover.business_summary or ""] + (mover.news_headlines or []) + (mover.search_context or [])
         context = " ".join(block for block in context_blocks if block).strip()
         sentences = [part.strip(" -") for part in re.split(r"(?<=[。.!?])\s+|\s+-\s+", context) if part.strip(" -")]
 
@@ -858,6 +852,19 @@ class FinanceDigestRunner:
         )
 
     @staticmethod
+    def _clean_external_snippet(text: str) -> str:
+        normalized = re.sub(r"\s+", " ", (text or "").strip())
+        if not normalized:
+            return ""
+        normalized = re.sub(r"\|\s*Reuters.*$", "", normalized, flags=re.IGNORECASE)
+        normalized = re.sub(r"\|\s*TipRanks.*$", "", normalized, flags=re.IGNORECASE)
+        normalized = re.sub(r"Stock Price & Latest News.*$", "", normalized, flags=re.IGNORECASE)
+        normalized = re.sub(r"View the latest .*?$", "", normalized, flags=re.IGNORECASE)
+        normalized = re.sub(r"Get the latest .*?$", "", normalized, flags=re.IGNORECASE)
+        normalized = re.sub(r"\s+-\s+$", "", normalized)
+        return normalized[:220]
+
+    @staticmethod
     def _pick_context_sentence(sentences: list[str], keywords: list[str]) -> Optional[str]:
         lowered_keywords = [keyword.lower() for keyword in keywords]
         for sentence in sentences:
@@ -893,7 +900,10 @@ class FinanceDigestRunner:
     def _normalize_chinese_category(self, text: str, fallback: str) -> str:
         normalized = (text or "").strip()
         if self._needs_chinese_rewrite(normalized):
-            return fallback.strip() or "科技"
+            fallback_text = self._translate_sector(fallback.strip()) if fallback.strip() else ""
+            if fallback_text and fallback_text != "未分类" and self._contains_chinese(fallback_text):
+                return fallback_text
+            return "综合企业"
         return normalized
 
     def _normalize_chinese_text(self, text: str, fallback: str) -> str:

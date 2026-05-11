@@ -22,7 +22,7 @@ def test_enrich_mover_uses_yahoo_profile_for_hk_classification():
         },
     ), patch.object(
         FinanceDigestRunner,
-        "_search_public_context",
+        "_fetch_yahoo_news",
         return_value=[
             "Sandmartin announced new communication hardware products.",
             "Investors focused on communication equipment demand recovery.",
@@ -36,6 +36,36 @@ def test_enrich_mover_uses_yahoo_profile_for_hk_classification():
     assert mover.industry_zh == "通信设备"
     assert mover.business_summary
     assert mover.news_headlines
+
+
+def test_enrich_mover_prefers_native_yahoo_news_over_public_search_noise():
+    runner = FinanceDigestRunner(FinanceDigestConfig(enabled=True, top_n=5), Mock(), httpx.AsyncClient())
+    mover = MarketMover(symbol="3816.HK", name="KFM KINGDOM", market="hk", change_pct=28.92)
+
+    with patch.object(
+        FinanceDigestRunner,
+        "_fetch_yahoo_profile",
+        return_value={
+            "shortName": "KFM Kingdom",
+            "sector": "Industrials",
+            "industry": "Metal Fabrication",
+            "longBusinessSummary": "KFM Kingdom is a metal stamping and precision metal processing company.",
+        },
+    ), patch.object(
+        FinanceDigestRunner,
+        "_fetch_yahoo_news",
+        return_value=[
+            "KFM Kingdom reported stronger orders from precision metal customers.",
+            "Metal processing demand improved across industrial names.",
+        ],
+    ), patch.object(FinanceDigestRunner, "_get_public_context", return_value=[]):
+        asyncio.run(runner._enrich_mover(mover))
+
+    asyncio.run(runner.http_client.aclose())
+
+    assert mover.news_headlines
+    assert "Reuters" not in mover.news_headlines[0]
+    assert mover.catalyst
 
 
 def test_apply_textual_fallbacks_uses_summary_and_search_context():
@@ -67,3 +97,12 @@ def test_needs_chinese_rewrite_flags_english_and_unclassified_content():
     assert not runner._needs_chinese_rewrite("这是一段中文总结。")
 
     asyncio.run(runner.http_client.aclose())
+
+
+def test_clean_external_snippet_removes_search_result_boilerplate():
+    cleaned = FinanceDigestRunner._clean_external_snippet(
+        "(3816.HK) | Stock Price & Latest News | Reuters - Get KFM Kingdom Holdings Ltd real-time stock quotes"
+    )
+
+    assert "Reuters" not in cleaned
+    assert "Stock Price & Latest News" not in cleaned
