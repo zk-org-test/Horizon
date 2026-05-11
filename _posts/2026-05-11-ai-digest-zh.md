@@ -6,7 +6,7 @@ lang: zh
 kind: ai
 ---
 
-本周热点集中在“可落地的智能体栈 + 行业/工程化模板 + 本地与隐私优先的运行形态”，AI 从能力竞赛转向可部署、可治理、可交付。
+本周 AI 热点从“智能体可落地”走向“可控、可接入、可在本地稳定运行”，桌面/行业工作流/工程规范三条线同时升温。
 
 ## 分类热度榜
 
@@ -19,143 +19,83 @@ kind: ai
 ## 分类项目看板
 
 ### 智能体（17个项目｜GitHub 11｜PH 6）
-1. [bytedance/UI-TARS-desktop（UI-TARS-desktop（字节跳动））](https://github.com/bytedance/UI-TARS-desktop) | GitHub #1
-   做什么：开源多模态 AI Agent 技术栈的一部分，提供基于 UI-TARS 模型的桌面端原…
-   标签：多模态智能体、GUI 自动化、桌面端应用
-   看点：把多模态模型能力落到“桌面级可操作的 GUI Agent”产品形态，适合做自动化办公、UI 操…
-2. [Tailgrids 3.0（Tailgrids 3.0（面向 Tailwind 与 AI 工作流的 React UI 库））](https://www.producthunt.com/products/tailgrids?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #1
-   做什么：一个开源 React UI 组件库，基于 Tailwind CSS，定位于快速搭建界面…
-   标签：设计工具、开源、开发工具
-   看点：将“组件库 + Tailwind 的高效率”与“AI 工作流产品的界面搭建需求”结合，适合做…
-3. [anthropics/financial-services（financial-services（Anthropic））](https://github.com/anthropics/financial-services) | GitHub #2
-   做什么：面向金融服务场景的 Claude 参考智能体/技能与数据连接器集合，覆盖投行、股票研究…
-   标签：金融工作流、参考智能体、技能与工具集成
-   看点：将金融行业常见流程做成可复用的“参考实现”，同时兼容 Claude Cowork 插件与 Ma…
-4. [addyosmani/agent-skills（agent-skills（Addy Osmani））](https://github.com/addyosmani/agent-skills) | GitHub #3
-   做什么：为 AI 编程智能体提供可直接落地的工程化“技能包”，把资深工程师常用的流程、质量门禁…
-   标签：AI 编程智能体、工程流程模板、质量门禁
-   看点：核心价值在于标准化“从需求到交付”的工程流程（规划、实现、测试、评审、发布等），让 codin…
-5. [CloakHQ/CloakBrowser（CloakBrowser（CloakHQ））](https://github.com/CloakHQ/CloakBrowser) | GitHub #4
-   做什么：面向浏览器自动化的“隐身版 Chromium”，通过源码级指纹补丁降低被风控/反爬系统…
-   标签：浏览器自动化、反检测/指纹对抗、Playwright 替代
-   看点：用二进制与源码层面的指纹修改而非简单脚本注入，降低自动化被检测的风险；并保持与主流自动化框架…
-6. [HKUDS/AI-Trader（AI-Trader（HKUDS））](https://github.com/HKUDS/AI-Trader) | GitHub #5
-   做什么：面向智能体的自动化交易平台/框架，主打“Agent-Native”交易：让不同 AI…
-   标签：自动化交易、Agent-Native 平台、多智能体接入
-   看点：把“交易平台”抽象为智能体可直接接入的基础设施，强调多智能体生态与标准化注册流程，便于搭建从策…
-7. [Notion 3.4（Notion 3.4（版本更新））](https://www.producthunt.com/products/notion-3-4?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #5
-   做什么：Notion 3.4 带来新的仪表盘与数据连接器，改进侧边栏体验，并加入更聪明的 AI…
-   标签：效率办公、人工智能、智能体
-   看点：把「信息看板 + 外部数据接入 + AI 助手」整合到同一工作台，减少多工具切换；对需要统一工…
-8. [AgentPeek（AgentPeek（刘海常驻 AI 编程助手））](https://www.producthunt.com/products/agentpeek?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #6
-   做什么：在 Mac 的刘海区域常驻使用 Claude Code 与 Codex，让开发者更快速…
-   标签：开发工具、人工智能、菜单栏/刘海应用
-   看点：把常用的 AI 编程入口放到系统最易触达的位置，减少窗口切换与分心；适合高频问答、生成代码片段…
-9. [datawhalechina/easy-vibe（easy-vibe（Datawhale））](https://github.com/datawhalechina/easy-vibe) | GitHub #7
-   做什么：面向初学者的现代编程入门课程/学习地图，强调“vibe coding”的交互式、循序渐…
-   标签：编程入门课程、交互式教程、编程
-   看点：以可视化与沉浸式交互降低学习门槛，把“能说就能做应用”的理念产品化，适合新手快速建立从工具使用…
-10. [playcanvas/supersplat（SuperSplat（PlayCanvas））](https://github.com/playcanvas/supersplat) | GitHub #8
-   做什么：用于编辑、优化 3D Gaussian Splats 的浏览器端编辑器，开源且不绑定特…
-   标签：智能体、3DGS 编辑器、浏览器端工具
-   看点：将 3DGS 的处理能力做成易用的 Web 编辑器，利于资产优化、可视化调参与跨引擎工作流集成…
-11. [lsdefine/GenericAgent（GenericAgent（自进化通用智能体框架））](https://github.com/lsdefine/GenericAgent) | GitHub #9
-   做什么：一个极简的自进化自主智能体框架，以约 3K 行核心代码、少量原子工具与 Agent 循…
-   标签：AI 智能体、自动化、自主智能体
-   看点：主打“技能不预置、用中进化”：执行路径自动结晶为技能树，越用越强；同时强调低代码量与更低 to…
-12. [decolua/9router（9router（免费 AI 路由与降本网关））](https://github.com/decolua/9router) | GitHub #10
-   做什么：面向 AI 编码工具的路由/网关层，把 Claude Code、Codex、Curso…
-   标签：AI 智能体、AI 网关、模型路由
-   看点：解决“多工具+多模型+经常触顶”的实际痛点：支持 40+ 提供商、100+ 模型的统一接入与智…
-13. [affaan-m/everything-claude-code（Everything Claude Code（智能体编程“性能与治理”体系））](https://github.com/affaan-m/everything-claude-code) | GitHub #11
-   做什么：面向 Claude Code、Codex、Opencode、Cursor 等 AI 编…
-   标签：AI 智能体、Claude生态、Anthropic生态
-   看点：不是单一工具，而是把“如何把编程智能体用得更稳、更快、更安全”系统化：覆盖性能优化、记忆与流程…
-14. [datawhalechina/hello-agents（Hello-Agents（从零开始构建智能体））](https://github.com/datawhalechina/hello-agents) | GitHub #12
-   做什么：Datawhale 开源教程《从零开始构建智能体》，覆盖智能体基础理论到实践落地，强调…
-   标签：智能体、大语言模型、检索增强
-   看点：面向“教程稀缺、实践断层”的学习痛点：提供系统化路线与可在线阅读的资料，帮助学习者从大模型使用…
-15. [Atlasly（Atlasly（面向建筑/空间的 AI 代理））](https://www.producthunt.com/products/atlasly?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #12
-   做什么：为建筑与空间相关工作提供 AI 代理能力，结合设计工具与地图/空间信息，支持调研、规划…
-   标签：设计工具、地图/空间数据、YC 申请
-   看点：把空间数据与设计决策流程连接起来，降低前期调研与方案迭代成本；对建筑、地产、城市规划等场景有潜…
-16. [Cohesivity（Cohesivity（AI Agent 后端基础设施））](https://www.producthunt.com/products/cohesivity?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #14
-   做什么：为 AI agents 提供后端基础设施能力，面向代理应用的运行、集成与工程化交付
-   标签：智能体、开发工具、编程
-   看点：帮助团队把“能跑的 agent demo”变成可维护、可扩展的后端系统，减少重复造轮子，加速…
-17. [Agent Memory System（Agent Memory System（智能体记忆系统））](https://www.producthunt.com/products/agent-memory-system?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #18
-   做什么：开源的 AI agent 上下文/记忆基础设施，用于管理与复用对话上下文、任务信息与长…
-   标签：开发工具、人工智能、智能体
-   看点：让智能体具备更可控的“记忆与上下文能力”，提升多轮任务的连续性与一致性，并便于开发者在 Git…
+1. [bytedance/UI-TARS-desktop（UI-TARS 桌面端）](https://github.com/bytedance/UI-TARS-desktop) | GitHub #1
+   项目定位：开源多模态智能体栈中的桌面应用，基于 UI-TARS 模型提供原生 GUI 智能体，支…
+   核心能力：桌面 GUI 多模态智能体
+   看点：把“看屏+操作”能力做成原生桌面端
+   判断：适合做可落地的桌面自动化智能体
+2. [Tailgrids 3.0（Tailgrids 3.0）](https://www.producthunt.com/products/tailgrids?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #1
+   项目定位：开源React UI组件库，面向Tailwind与AI工作流界面搭建，帮助快速构建应用…
+   核心能力：React组件库、Tailwind集成、工作流UI
+   看点：开源可定制，适合快速搭建产品外观与流程
+   判断：偏前端效率工具，价值取决于组件覆盖面
+3. [anthropics/financial-services（Claude 金融服务参考方案）](https://github.com/anthropics/financial-services) | GitHub #2
+   项目定位：面向投行、研报、私募与财富管理的参考智能体与数据连接器，既可作为 Claude Cow…
+   核心能力：金融工作流参考智能体套件
+   看点：一套提示词与技能，插件/API 两用
+   判断：适合金融团队快速搭建可审阅产物流程
+其余项目：addyosmani/agent-skills；CloakHQ/CloakBrowser；HKUDS/AI-Trader；Notion 3.4 等14个项目
 
 ### 设计创作（6个项目｜GitHub 0｜PH 6）
-1. [Adject 2.0（Adject 2.0（AI 超写实产品视觉生成））](https://www.producthunt.com/products/adject?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #4
-   做什么：用 AI 生成更“超写实”的产品视觉与展示图，面向产品营销、电商与品牌视觉场景
-   标签：设计工具、人工智能、电商
-   看点：降低高质量产品图制作门槛：以生成式方式快速产出接近真实摄影质感的视觉素材，适合电商上新、广告素…
-2. [TheStatsAPI（TheStatsAPI（足球数据接口））](https://www.producthunt.com/products/thestatsapi?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #13
-   做什么：面向足球场景的统计数据 API，主打高速响应与易集成，适合用于赛事数据查询、数据看板与…
-   标签：设计创作、体育、足球
-   看点：为开发者提供“快且稳定”的足球数据获取能力，降低自己爬取与清洗数据的成本，提升体育产品的数据体…
-3. [iGreet（iGreet（个性化视频贺卡））](https://www.producthunt.com/products/igreet?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #15
-   做什么：提供可个性化定制的视频祝福贺卡，并结合增强现实效果，让贺卡呈现更“有生命力”的互动体验
-   标签：增强现实、家庭
-   看点：把传统祝福从静态卡片升级为可互动、可传播的沉浸式表达，适用于家庭场景的生日、节日与纪念日祝福
-4. [Pro Thumbnail Inspirations（Pro Thumbnail Inspirations（缩略图灵感库））](https://www.producthunt.com/products/thumblifyai?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #16
-   做什么：面向创作者按细分领域提供更容易出圈的缩略图灵感与方向参考，辅助快速产出 YouTube…
-   标签：设计工具、人工智能、设计创作
-   看点：解决“选题有了但缩略图不够吸睛”的常见痛点，通过灵感与范式提升点击率思路，降低设计试错成本
-5. [Screen Bolt（Screen Bolt（录屏到发布一体化））](https://www.producthunt.com/products/screen-bolt?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #17
-   做什么：一体化的录制、编辑与发布工具链，面向快速制作演示、教程与营销内容的工作流
-   标签：设计工具、营销
-   看点：把录屏与后期编辑、交付发布打通，减少工具切换与导出折腾，提升内容生产效率，适合产品/市场/运营…
-6. [GoKollab Downloader（GoKollab Downloader（课程视频离线保存））](https://www.producthunt.com/products/gokollab-downloader?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #20
-   做什么：用于将 GoKollab 课程视频保存到本地离线观看的工具（以浏览器扩展/脚本形态为主）
-   标签：Chrome 扩展、效率办公、设计创作
-   看点：满足在无网、弱网或通勤场景的学习需求，提升学习连续性与效率；同时对偏技术用户更友好，便于在 G…
+1. [Adject 2.0（Adject 2.0）](https://www.producthunt.com/products/adject?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #4
+   项目定位：用AI生成高拟真产品视觉素材的设计工具，面向电商与营销场景提升出图效率与一致性
+   核心能力：AI商品图生成、风格控制、视觉增强
+   看点：降低拍摄与渲染成本，快速产出营销素材
+   判断：适合电商视觉提效，需评估品牌一致性
+2. [TheStatsAPI（TheStatsAPI 足球数据接口）](https://www.producthunt.com/products/thestatsapi?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #13
+   项目定位：面向足球应用的高速统计数据API服务
+   核心能力：提供高速足球数据查询与统计
+   看点：强调速度，适合实时比分与分析
+   判断：性能导向，适配高频调用场景
+3. [iGreet（iGreet 个性化视频祝福卡）](https://www.producthunt.com/products/igreet?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #15
+   项目定位：可定制的视频祝福卡，用更生动方式表达心意
+   核心能力：生成个性化视频祝福卡体验
+   看点：更有仪式感，适合节日与家庭场景
+   判断：情感表达产品，重体验与传播
+其余项目：Pro Thumbnail Inspirations；Screen Bolt；GoHighLevel Downloader
 
 ### 开源工具（5个项目｜GitHub 0｜PH 5）
-1. [InvestorFinder（InvestorFinder（相似案例投资人匹配））](https://www.producthunt.com/products/investorfinder?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #2
-   做什么：用于寻找投资人的产品：通过“曾投资过与你类似的创始人/项目”的线索，帮助更快定位潜在投…
-   标签：投资、风险投资、创业
-   看点：把“找对人”从泛搜转为基于相似投资偏好的匹配逻辑，可用于早期融资的名单构建与外联优先级排序，减…
-2. [Keel（Keel（记忆归用户所有的 AI 助手））](https://www.producthunt.com/products/keel-3?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #8
-   做什么：一款强调“记忆归你所有”的 AI 助手，把长期记忆与上下文管理交还给用户控制，减少对平…
-   标签：人工智能、开源工具、虚拟助手
-   看点：解决 AI 助手长期使用中最关键的“记忆资产”归属与可迁移问题；对希望可控存储、可导出、可自托…
-3. [Better Sol（Better Sol（Solana 全栈 TypeScript 开发））](https://www.producthunt.com/products/better-sol?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #9
-   做什么：用 TypeScript 端到端开发 Solana 应用的工具/框架，面向从合约到应用…
-   标签：开源、开源工具、开源工具
-   看点：用统一语言与工具链降低 Web3 开发门槛，减少多语言栈带来的复杂度；更利于前端/全栈团队快速…
-4. [ReelFluent Web（ReelFluent Web（短视频式语言学习））](https://www.producthunt.com/products/reelfluent?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #10
-   做什么：把类似 Reels 的短视频交互用在语言学习上，通过轻量内容与高频练习提升学习持续性与…
-   标签：教育、语言学习、娱乐化学习
-   看点：用更贴近用户习惯的内容消费方式提升完课率；适合碎片化学习、跟读/理解训练与兴趣驱动型学习路径
-5. [PrimeCompass.ai（PrimeCompass.ai（基于线上应用的质量智能））](https://www.producthunt.com/products/primecompass-ai?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #11
-   做什么：从线上运行的应用中获取实时信号，用 AI 做质量智能分析，帮助团队定位体验或工程质量问…
-   标签：A/B 测试、软件工程、人工智能
-   看点：将质量观测与 AI 分析结合，能更快从真实用户行为中发现问题与机会；对有增长实验、质量监控与工…
+1. [InvestorFinder（InvestorFinder）](https://www.producthunt.com/products/investorfinder?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #2
+   项目定位：基于相似创业画像匹配投资人的检索工具，帮助创始人定位更可能投资同类项目的投资方与机构
+   核心能力：投资人匹配、相似案例检索、线索发现
+   看点：用“相似创始人/项目”缩小融资触达范围
+   判断：适合早期BD与融资准备，需关注数据质量
+2. [Keel（Keel）](https://www.producthunt.com/products/keel-3?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #8
+   项目定位：强调“记忆归你”的 AI 助手：用户可掌控助手的长期记忆与存储方式
+   核心能力：可控记忆的个人AI助手
+   看点：解决助手记忆与数据归属问题
+   判断：隐私与长期使用价值更突出
+3. [Better Sol（Better Sol）](https://www.producthunt.com/products/better-sol?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #9
+   项目定位：用 TypeScript 端到端开发 Solana 应用，覆盖合约到应用层的开发流程
+   核心能力：TypeScript 全栈 Solana 开发
+   看点：降低 Solana 上手与集成成本
+   判断：偏工程化，适合快速落地项目
+其余项目：ReelFluent Web；PrimeCompass.ai
 
 ### 开发工具（3个项目｜GitHub 1｜PH 2）
-1. [deepsec（deepsec（开源代码安全防护 Harness））](https://www.producthunt.com/products/vercel?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #3
-   做什么：一个开源的“编码安全 Harness”，用于在开发与代码生成/协作过程中加强安全约束与…
-   标签：开源、开发工具、开发工具
-   看点：将安全能力前置到开发链路，适合作为团队的安全基线与工具化护栏，降低因依赖、脚本、生成代码等带来…
-2. [jundot/omlx（oMLX（jundot））](https://github.com/jundot/omlx) | GitHub #6
-   做什么：面向 Apple Silicon 的本地 LLM 推理服务端，支持连续批处理与分层 K…
-   标签：本地 LLM 推理、Apple Silicon 优化、连续批处理
-   看点：解决本地推理“方便与可控难两全”的痛点：缓存跨请求复用、冷热分层降低成本，适合在 Mac 上长…
-3. [DESIGN.MD by Parallect（DESIGN.MD by Parallect（网页生成 DESIGN.md））](https://www.producthunt.com/products/design-md-by-parallect?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #19
-   做什么：输入任意网站 URL，自动生成 DESIGN.md 文档，沉淀页面结构与设计要点，便于…
-   标签：设计工具、开发工具、人工智能
-   看点：将网页设计信息快速文档化，支持设计/研发对齐与需求评审，减少手工整理与遗漏，适合团队规范化沉淀…
+1. [deepsec（deepsec）](https://www.producthunt.com/products/vercel?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #3
+   项目定位：开源代码安全加固工具链/框架，为AI编程与自动化开发提供安全护栏与检查机制，降低引入漏…
+   核心能力：代码安全护栏、风险检测、开发流程集成
+   看点：面向AI辅助编码场景，补齐安全与合规短板
+   判断：安全基建向工具，适合接入CI与代理流程
+2. [jundot/omlx（oMLX 本地推理服务）](https://github.com/jundot/omlx) | GitHub #6
+   项目定位：面向 Apple Silicon 的 LLM 本地推理服务器，支持连续批处理与分层 K…
+   核心能力：本地推理服务与分层KV缓存
+   看点：菜单栏可控+SSD 缓存，让本地模型更实用
+   判断：适合 Mac 上做稳定的本地模型服务与工具集成
+3. [DESIGN.MD by Parallect（DESIGN.MD by Parallect 设计说明生成器）](https://www.producthunt.com/products/design-md-by-parallect?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #19
+   项目定位：输入网站URL，自动生成可用的 DESIGN.md 设计说明
+   核心能力：从URL自动生成DESIGN.md文档
+   看点：把页面设计快速沉淀为可协作文档
+   判断：偏文档自动化，利于设计交付
 
 ### 数据（1个项目｜GitHub 0｜PH 1）
-1. [LumiChats Offline(free)（LumiChats Offline（离线免费 AI））](https://www.producthunt.com/products/lumichats-offline?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #7
-   做什么：主打完全离线运行的 AI 聊天工具，强调零数据采集并且免费使用，面向隐私敏感与离线环境…
-   标签：开源、隐私保护、YC 申请
-   看点：在隐私与合规要求更高的场景（如本地文档、内网电脑、教育/政企设备）更易落地；离线也能用，减少对…
+1. [LumiChats Offline(free)（LumiChats 离线版（免费））](https://www.producthunt.com/products/lumichats-offline?utm_campaign=producthunt-api&utm_medium=api-v2&utm_source=Application%3A+local+%28ID%3A+284519%29) | Product Hunt #7
+   项目定位：主打完全离线运行、零数据采集且免费使用的本地 AI 聊天工具
+   核心能力：离线对话与本地模型运行
+   看点：隐私友好且零成本可用
+   判断：适合对数据合规敏感的用户
 
 ## 后续趋势判断
 
-后续将出现三条主线：1）智能体“操作系统化”——从单点工具走向可组合的 Agent Stack（GUI/浏览器/MCP/工作流编排）；2）“行业包/技能包”成为主流交付形态（金融、工程流程、治理与审计能力内置）；3）本地化与隐私优先加速（端侧推理、用户可控记忆、离线运行），同时自动化对抗（反检测浏览器等）会推动更强的安全与合规护栏同步建设。
+趋势上将从“模型能力展示”转向“端到端交付”：一是 GUI/浏览器等操作型智能体继续向桌面端与可控运行时演进；二是行业化参考方案（金融等）会以连接器+审阅链路为核心加速产品化；三是围绕智能体的工程化与安全护栏（流程门禁、代码安全、合规）将成为标配，同时本地推理与隐私/记忆可控的客户端工具会持续走强。
