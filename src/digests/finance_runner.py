@@ -111,6 +111,95 @@ SECTOR_ZH_MAP = {
     "Basic Materials": "基础材料",
 }
 
+FINANCE_TEXT_REPLACEMENTS = [
+    ("together with its subsidiaries", "连同其子公司"),
+    ("investment holding company", "投资控股公司"),
+    ("people's republic of china", "中国内地"),
+    ("hong kong", "香港"),
+    ("the united states", "美国"),
+    ("united states", "美国"),
+    ("united kingdom", "英国"),
+    ("the netherlands", "荷兰"),
+    ("canada", "加拿大"),
+    ("germany", "德国"),
+    ("belgium", "比利时"),
+    ("japan", "日本"),
+    ("internationally", "国际市场"),
+    ("globally", "全球市场"),
+    ("space systems company", "太空系统公司"),
+    ("launch services", "发射服务"),
+    ("launch service", "发射服务"),
+    ("spacecraft components", "航天器部件"),
+    ("space software", "航天软件"),
+    ("launch vehicle", "运载火箭"),
+    ("satellite systems", "卫星系统"),
+    ("data engineering services", "数据工程服务"),
+    ("data engineering", "数据工程"),
+    ("AI training data", "AI训练数据"),
+    ("media intelligence", "媒体情报"),
+    ("content delivery network", "内容分发网络"),
+    ("cloud security solutions", "云安全解决方案"),
+    ("battery energy storage systems", "电池储能系统"),
+    ("energy storage products", "储能产品"),
+    ("independent power and renewable electricity producers", "独立电力与新能源发电"),
+    ("software - infrastructure", "基础软件"),
+    ("electrical equipment & parts", "电气设备与零部件"),
+    ("cantonese dining", "粤式餐饮"),
+    ("banquet services", "宴会服务"),
+    ("restaurant", "餐饮"),
+    ("restaurants", "餐饮业务"),
+    ("launch contracts", "发射合同"),
+    ("defense contracts", "国防合同"),
+    ("defense contract", "国防合同"),
+    ("raised full-year guidance", "上调全年指引"),
+    ("record revenue", "创纪录营收"),
+    ("record quarter", "创纪录季度业绩"),
+    ("stronger orders", "订单走强"),
+    ("new products", "新产品"),
+    ("communication equipment", "通信设备"),
+    ("metal processing", "金属加工"),
+    ("engineering and construction", "工程建设"),
+    ("paper and paper products", "纸业与纸制品"),
+    ("semiconductor equipment and materials", "半导体设备与材料"),
+    ("semiconductors and semiconductor equipment", "半导体及设备"),
+    ("semiconductor", "半导体"),
+    ("computer hardware", "计算机硬件"),
+    ("information technology services", "信息技术服务"),
+    ("auto parts", "汽车零部件"),
+    ("biotechnology", "生物科技"),
+    ("software", "软件"),
+    ("hardware", "硬件"),
+    ("platform", "平台"),
+    ("services", "服务"),
+    ("service", "服务"),
+    ("products", "产品"),
+    ("product", "产品"),
+    ("systems", "系统"),
+    ("system", "系统"),
+    ("components", "部件"),
+    ("component", "部件"),
+    ("equipment", "设备"),
+    ("global", "全球"),
+    ("company", "公司"),
+    ("companies", "公司"),
+    ("provides", "提供"),
+    ("provide", "提供"),
+    ("develops", "开发"),
+    ("develop", "开发"),
+    ("designs", "设计"),
+    ("design", "设计"),
+    ("manufactures", "生产"),
+    ("manufacture", "生产"),
+    ("produces", "生产"),
+    ("produce", "生产"),
+    ("offers", "提供"),
+    ("offer", "提供"),
+    ("operates", "运营"),
+    ("operate", "运营"),
+    ("sells", "销售"),
+    ("sell", "销售"),
+]
+
 
 def get_previous_trading_day(current: datetime) -> datetime:
     """Return the most recent weekday before *current*."""
@@ -505,8 +594,8 @@ class FinanceDigestRunner:
         if not movers:
             return
 
-        for start in range(0, len(movers), 8):
-            batch = movers[start:start + 8]
+        for start in range(0, len(movers), 6):
+            batch = movers[start:start + 6]
             payload = [
                 {
                     "symbol": mover.symbol,
@@ -534,25 +623,37 @@ class FinanceDigestRunner:
             )
             try:
                 response = await asyncio.wait_for(
-                    self.ai_client.complete(system=system, user=user, max_tokens=2200),
+                    self.ai_client.complete(system=system, user=user, max_tokens=2600),
                     timeout=45,
                 )
                 result = parse_json_response(response) or {}
-            except Exception:
+            except Exception as exc:
+                print(
+                    f"[finance] ai_label_movers failed for {[mover.symbol for mover in batch]}: "
+                    f"{type(exc).__name__}: {exc}"
+                )
                 result = {}
 
             enriched_map = {str(item.get("symbol")): item for item in result.get("items", []) if item.get("symbol")}
+            if not enriched_map:
+                print(f"[finance] ai_label_movers returned no structured items for {[mover.symbol for mover in batch]}")
             for mover in batch:
                 item = enriched_map.get(mover.symbol, {})
-                mover.name_zh = str(item.get("name_zh") or mover.name_zh or "")
+                mover.name_zh = str(item.get("name_zh") or mover.name_zh or "").strip() or None
                 mover.sector_zh = self._translate_sector(str(item.get("sector_zh") or mover.sector_zh or mover.sector))
                 mover.industry_zh = self._translate_industry(
                     str(item.get("industry_zh") or mover.industry_zh or mover.industry),
                     mover.sector_zh,
                 )
-                mover.company_intro = str(item.get("company_intro") or mover.company_intro or "").strip() or None
-                mover.main_products = str(item.get("main_products") or mover.main_products or "").strip() or None
-                mover.move_reason = str(item.get("move_reason") or mover.move_reason or "").strip() or None
+                company_intro = str(item.get("company_intro") or "").strip()
+                main_products = str(item.get("main_products") or "").strip()
+                move_reason = str(item.get("move_reason") or "").strip()
+                if company_intro and self._is_useful_cn_text(company_intro):
+                    mover.company_intro = company_intro
+                if main_products and self._is_useful_cn_text(main_products):
+                    mover.main_products = main_products
+                if move_reason and self._is_useful_cn_text(move_reason):
+                    mover.move_reason = move_reason
                 self._apply_textual_fallbacks(mover)
 
     async def _ai_deepen_focus_movers(self, movers: list[MarketMover]) -> None:
@@ -588,19 +689,25 @@ class FinanceDigestRunner:
                     timeout=25,
                 )
                 item = parse_json_response(response) or {}
-            except Exception:
+            except Exception as exc:
+                print(
+                    f"[finance] ai_deepen_focus_movers failed for {mover.symbol}: "
+                    f"{type(exc).__name__}: {exc}"
+                )
                 item = {}
             if isinstance(item.get("items"), list) and item["items"]:
                 item = item["items"][0] or {}
+            elif not item:
+                print(f"[finance] ai_deepen_focus_movers returned no structured item for {mover.symbol}")
 
             company_intro = str(item.get("company_intro") or "").strip()
             main_products = str(item.get("main_products") or "").strip()
             move_reason = str(item.get("move_reason") or "").strip()
-            if company_intro and not self._looks_generic(company_intro):
+            if company_intro and self._is_useful_cn_text(company_intro):
                 mover.company_intro = company_intro
-            if main_products and not self._looks_generic(main_products):
+            if main_products and self._is_useful_cn_text(main_products):
                 mover.main_products = main_products
-            if move_reason and not self._looks_generic(move_reason):
+            if move_reason and self._is_useful_cn_text(move_reason):
                 mover.move_reason = move_reason
             if item.get("name_zh"):
                 mover.name_zh = str(item.get("name_zh")).strip() or mover.name_zh
@@ -826,6 +933,114 @@ class FinanceDigestRunner:
         line = " - ".join(part for part in [title, summary] if part)
         return FinanceDigestRunner._clean_external_snippet(line)
 
+    def _summarize_business_summary(self, company_name: str, summary: str) -> Optional[str]:
+        first_sentence = self._first_sentence(summary)
+        if not first_sentence:
+            return None
+
+        patterns = [
+            r"^[A-Z][^.,;]*?\bis an?\s+(.+?)(?:\s+that|\s+which|\.|,|$)",
+            r"^[A-Z][^.,;]*?\boperates as an?\s+(.+?)(?:\s+that|\s+which|\.|,|$)",
+            r"^[A-Z][^.,;]*?\bis a[n]?\s+(.+?)(?:\s+providing|\s+offering|\s+developing|\s+designing|\.|,|$)",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, first_sentence, flags=re.IGNORECASE)
+            if match:
+                phrase = self._translate_finance_text(self._trim_business_phrase(match.group(1)))
+                if self._contains_chinese(phrase):
+                    return f"{company_name} 是一家{phrase.strip('。')}。"
+
+        translated = self._translate_finance_text(first_sentence)
+        if self._contains_chinese(translated):
+            return translated
+        return None
+
+    def _extract_products_from_summary(self, summary: str) -> Optional[str]:
+        patterns = [
+            r"\b(?:provides?|offers?|sells?|develops?|designs?|manufactures?|produces?)\s+(.+?)(?:\.|;|, while|, which|, and| to | for |$)",
+            r"\bproducts?\s+(?:include|includes)\s+(.+?)(?:\.|;|,|$)",
+            r"\bservices?\s+(?:include|includes)\s+(.+?)(?:\.|;|,|$)",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, summary, flags=re.IGNORECASE)
+            if match:
+                phrase = self._translate_finance_text(self._trim_business_phrase(match.group(1)))
+                if self._contains_chinese(phrase):
+                    return f"主要产品/服务包括{phrase.strip('。')}。"
+
+        translated = self._translate_finance_text(self._first_sentence(summary))
+        if self._contains_chinese(translated):
+            return translated
+        return None
+
+    def _summarize_news_reason(self, headlines: list[str]) -> Optional[str]:
+        if not headlines:
+            return None
+
+        joined = " ".join(headlines).lower()
+        reasons: list[str] = []
+        if any(keyword in joined for keyword in ["earnings", "revenue", "profit", "quarter", "guidance"]):
+            reasons.append("公司披露了业绩或指引利好")
+        if any(keyword in joined for keyword in ["contract", "contracts", "order", "orders", "deal"]):
+            reasons.append("新合同或订单进展带动情绪")
+        if any(keyword in joined for keyword in ["defense", "government", "military"]):
+            reasons.append("国防/政府相关订单预期升温")
+        if any(keyword in joined for keyword in ["launch", "product", "products", "release"]):
+            reasons.append("新产品或项目进展带来催化")
+        if any(keyword in joined for keyword in ["approval", "fda", "clearance"]):
+            reasons.append("审批或监管进展带来催化")
+        if any(keyword in joined for keyword in ["partnership", "partner", "cooperation"]):
+            reasons.append("合作消息提升了市场关注度")
+
+        if reasons:
+            deduped: list[str] = []
+            for item in reasons:
+                if item not in deduped:
+                    deduped.append(item)
+            return "新闻线索显示，" + "，".join(deduped[:3]) + "。"
+
+        translated = self._translate_finance_text(headlines[0])
+        if self._contains_chinese(translated):
+            return translated
+        return None
+
+    @staticmethod
+    def _first_sentence(text: str) -> str:
+        normalized = re.sub(r"\s+", " ", (text or "").strip())
+        if not normalized:
+            return ""
+        parts = re.split(r"(?<=[.!?。])\s+", normalized, maxsplit=1)
+        return parts[0][:180]
+
+    def _translate_finance_text(self, text: str) -> str:
+        normalized = self._clean_external_snippet(text or "")
+        if not normalized:
+            return ""
+
+        converted = normalized
+        for source, target in sorted(FINANCE_TEXT_REPLACEMENTS, key=lambda item: len(item[0]), reverse=True):
+            converted = re.sub(re.escape(source), target, converted, flags=re.IGNORECASE)
+
+        converted = re.sub(r"\bis an?\b", "是", converted, flags=re.IGNORECASE)
+        converted = re.sub(r"\bwhich\b", "，并且", converted, flags=re.IGNORECASE)
+        converted = re.sub(r"\bthat\b", "，并", converted, flags=re.IGNORECASE)
+        converted = re.sub(r"\band\b", "和", converted, flags=re.IGNORECASE)
+        converted = re.sub(r"\bwith\b", "，并拥有", converted, flags=re.IGNORECASE)
+        converted = re.sub(r"\bfrom\b", "来自", converted, flags=re.IGNORECASE)
+        converted = re.sub(r"\bfor\b", "面向", converted, flags=re.IGNORECASE)
+        converted = re.sub(r"\bin\b", "在", converted, flags=re.IGNORECASE)
+        converted = re.sub(r"\s+,", "，", converted)
+        converted = re.sub(r",\s*", "、", converted)
+        converted = re.sub(r"\s*;\s*", "；", converted)
+        converted = re.sub(r"\s+", " ", converted).strip(" -")
+        converted = converted.replace(" .", "。").replace(".", "。")
+        converted = converted.replace(" ,", "，")
+        converted = re.sub(r"([A-Za-z])\s+([，。；])", r"\1\2", converted)
+        converted = re.sub(r"\s*([，。；])\s*", r"\1", converted)
+        if converted and converted[-1] not in "。！？":
+            converted += "。"
+        return converted
+
     @staticmethod
     def _search_public_context(symbol: str, name: str, market: str) -> list[str]:
         queries = [f"{symbol} {name} {'Hong Kong' if market == 'hk' else 'US'} stock latest news products"]
@@ -873,27 +1088,18 @@ class FinanceDigestRunner:
         context = " ".join(block for block in context_blocks if block).strip()
         sentences = [part.strip(" -") for part in re.split(r"(?<=[。.!?])\s+|\s+-\s+", context) if part.strip(" -")]
 
-        if not mover.company_intro:
-            mover.company_intro = self._pick_context_sentence(
-                sentences,
-                ["company", "provides", "develops", "designs", "operator", "provider", "制造", "提供", "主营"],
-            ) or (sentences[0][:100] if sentences else f"{mover.name} 所处方向为 {mover.industry_zh or mover.sector_zh}。")
+        specific_intro = self._build_company_intro(mover, sentences)
+        specific_products = self._build_main_products(mover, sentences)
+        specific_reason = self._build_move_reason(mover, sentences)
 
-        if not mover.main_products:
-            mover.main_products = self._pick_context_sentence(
-                sentences,
-                ["product", "products", "services", "platform", "launch", "vehicle", "software", "equipment", "芯片", "产品", "服务"],
-            ) or mover.company_intro
+        if not mover.company_intro or self._looks_generic(mover.company_intro) or self._needs_chinese_rewrite(mover.company_intro):
+            mover.company_intro = specific_intro
 
-        if not mover.move_reason:
-            mover.move_reason = (
-                mover.catalyst
-                or self._pick_context_sentence(
-                    sentences,
-                    ["surge", "rose", "rally", "contract", "earnings", "guidance", "launch", "news", "gain", "财报", "订单", "合同", "催化"],
-                )
-                or "公开信息显示资金主要围绕相关业务主题与短线催化集中交易。"
-            )
+        if not mover.main_products or self._looks_generic(mover.main_products) or self._needs_chinese_rewrite(mover.main_products):
+            mover.main_products = specific_products
+
+        if not mover.move_reason or self._looks_generic(mover.move_reason) or self._needs_chinese_rewrite(mover.move_reason):
+            mover.move_reason = specific_reason
 
         mover.sector_zh = self._normalize_chinese_category(mover.sector_zh, fallback=self._translate_sector(mover.sector))
         mover.industry_zh = self._normalize_chinese_category(
@@ -902,16 +1108,71 @@ class FinanceDigestRunner:
         )
         mover.company_intro = self._normalize_chinese_text(
             mover.company_intro or "",
-            fallback=f"{mover.name} 主营方向与 {mover.industry_zh or mover.sector_zh} 相关。",
+            fallback=specific_intro,
         )
         mover.main_products = self._normalize_chinese_text(
             mover.main_products or "",
-            fallback=f"公司主要产品与 {mover.industry_zh or mover.sector_zh} 业务相关。",
+            fallback=specific_products,
         )
         mover.move_reason = self._normalize_chinese_text(
             mover.move_reason or "",
-            fallback="公开信息显示资金主要围绕相关业务主题与短线催化集中交易。",
+            fallback=specific_reason,
         )
+
+    def _build_company_intro(self, mover: MarketMover, sentences: list[str]) -> str:
+        if mover.business_summary:
+            intro = self._summarize_business_summary(mover.name, mover.business_summary)
+            if intro:
+                return intro
+
+        sentence = self._pick_context_sentence(
+            sentences,
+            ["company", "provides", "develops", "designs", "operator", "provider", "manufactures", "运营", "提供"],
+        )
+        if sentence:
+            translated = self._translate_finance_text(sentence)
+            if self._contains_chinese(translated):
+                return translated
+
+        return f"{mover.name} 是一家聚焦{mover.industry_zh or mover.sector_zh}的公司。"
+
+    def _build_main_products(self, mover: MarketMover, sentences: list[str]) -> str:
+        if mover.business_summary:
+            products = self._extract_products_from_summary(mover.business_summary)
+            if products:
+                return products
+
+        sentence = self._pick_context_sentence(
+            sentences,
+            ["product", "products", "services", "platform", "launch", "vehicle", "software", "equipment", "customers"],
+        )
+        if sentence:
+            translated = self._translate_finance_text(sentence)
+            if self._contains_chinese(translated):
+                return translated
+
+        return f"主要产品/服务集中在{mover.industry_zh or mover.sector_zh}方向。"
+
+    def _build_move_reason(self, mover: MarketMover, sentences: list[str]) -> str:
+        news_reason = self._summarize_news_reason(mover.news_headlines or [])
+        if news_reason:
+            return news_reason
+
+        if mover.catalyst:
+            translated = self._translate_finance_text(mover.catalyst)
+            if self._contains_chinese(translated):
+                return translated
+
+        return f"公开新闻里没有发现明确公司级催化，走势更像{mover.sector_zh or mover.industry_zh}板块情绪或资金驱动。"
+
+    @staticmethod
+    def _trim_business_phrase(text: str) -> str:
+        normalized = re.sub(r"\s+", " ", (text or "").strip(" ,.;"))
+        normalized = re.sub(r"^(together with its subsidiaries|through its subsidiaries|as well as)\s*,?\s*", "", normalized, flags=re.IGNORECASE)
+        normalized = re.sub(r"\b(?:in|across|throughout|within|primarily in|mainly in)\b.+$", "", normalized, flags=re.IGNORECASE)
+        normalized = re.sub(r"\b(?:to customers in|for customers in)\b.+$", "", normalized, flags=re.IGNORECASE)
+        normalized = normalized.strip(" ,.;")
+        return normalized
 
     @staticmethod
     def _clean_external_snippet(text: str) -> str:
@@ -946,6 +1207,10 @@ class FinanceDigestRunner:
         if "未分类" in normalized or "待补充" in normalized:
             return True
         return not self._contains_chinese(normalized)
+
+    def _is_useful_cn_text(self, text: str) -> bool:
+        normalized = (text or "").strip()
+        return bool(normalized) and self._contains_chinese(normalized) and not self._looks_generic(normalized)
 
     def _mover_needs_localization(self, mover: MarketMover) -> bool:
         return any(

@@ -75,6 +75,10 @@ def test_apply_textual_fallbacks_uses_summary_and_search_context():
         "Rocket Lab is a space systems company that provides launch services, spacecraft components, "
         "and space software."
     )
+    mover.news_headlines = [
+        "Rocket Lab reported record revenue and raised full-year guidance.",
+        "Rocket Lab won fresh defense and launch contracts.",
+    ]
     mover.search_context = [
         "Rocket Lab won fresh defense and launch contracts.",
         "Its Electron launch vehicle and satellite systems remain the main products.",
@@ -85,7 +89,12 @@ def test_apply_textual_fallbacks_uses_summary_and_search_context():
 
     assert mover.company_intro
     assert mover.main_products
-    assert "公司主要产品" in mover.main_products or "公开信息显示" in mover.main_products or "相关" in mover.main_products
+    assert "主营方向与" not in mover.company_intro
+    assert "主要产品与" not in mover.main_products
+    assert "资金主要围绕" not in mover.move_reason
+    assert any(keyword in mover.company_intro for keyword in ["太空系统", "发射服务", "航天"])
+    assert any(keyword in mover.main_products for keyword in ["发射服务", "航天器", "软件"])
+    assert any(keyword in mover.move_reason for keyword in ["业绩", "指引", "合同"])
     assert mover.move_reason
 
 
@@ -127,3 +136,30 @@ def test_ai_deepen_focus_movers_overrides_generic_fallback_text():
     assert mover.company_intro == "Innodata 是一家 AI 数据工程公司。"
     assert mover.main_products == "AI 训练数据与媒体情报 SaaS。"
     assert mover.move_reason == "创纪录业绩并上调指引推动上涨。"
+
+
+def test_ai_label_movers_ignores_generic_ai_output_and_keeps_specific_fallbacks():
+    ai_client = Mock()
+    ai_client.complete = AsyncMock(
+        return_value='{"items":[{"symbol":"RKLB","company_intro":"Rocket Lab 主营方向与 航空航天与国防 相关。","main_products":"公司主要产品与 航空航天与国防 业务相关。","move_reason":"公开信息显示资金主要围绕相关业务主题与短线催化集中交易。"}]}'
+    )
+    runner = FinanceDigestRunner(FinanceDigestConfig(enabled=True, top_n=5), ai_client, httpx.AsyncClient())
+    mover = MarketMover(symbol="RKLB", name="Rocket Lab Corporation", market="us", change_pct=34.44)
+    mover.sector = "Industrials"
+    mover.industry = "Aerospace & Defense"
+    mover.sector_zh = "工业"
+    mover.industry_zh = "航空航天与国防"
+    mover.business_summary = (
+        "Rocket Lab is a space systems company that provides launch services, spacecraft components, "
+        "and space software."
+    )
+    mover.news_headlines = [
+        "Rocket Lab reported record revenue and raised full-year guidance.",
+    ]
+
+    asyncio.run(runner._ai_label_movers([mover]))
+    asyncio.run(runner.http_client.aclose())
+
+    assert "主营方向与" not in mover.company_intro
+    assert "主要产品与" not in mover.main_products
+    assert "资金主要围绕" not in mover.move_reason
