@@ -30,6 +30,13 @@ AI_CATEGORY_ZH = {
     "Open Source": "开源工具",
 }
 
+AI_TOPIC_ZH = {
+    "Artificial Intelligence": "人工智能",
+    "Developer Tools": "开发工具",
+    "Data": "数据",
+    "Design": "设计创作",
+}
+
 
 def classify_ai_category(name: str, description: str, topics: list[str]) -> str:
     """Map AI products and repos into a digest-friendly category."""
@@ -65,7 +72,8 @@ class AIProject:
 
     def to_line(self) -> str:
         display_name = self.name if not self.name_zh else f"{self.name}（{self.name_zh}）"
-        topic_part = f" | 主题：{', '.join(self.topics[:3])}" if self.topics else ""
+        zh_topics = [AI_TOPIC_ZH.get(topic, topic) for topic in self.topics[:3]]
+        topic_part = f" | 主题：{', '.join(zh_topics)}" if zh_topics else ""
         metric = f" | 热度：{self.votes}" if self.votes is not None else ""
         summary = self.summary_zh or self.description
         return f"- #{self.rank} [{display_name}]({self.url})：{summary} | 分类：{self.category_zh}{topic_part}{metric}"
@@ -345,40 +353,42 @@ class AIDigestRunner:
         if not projects:
             return
 
-        payload = [
-            {
-                "name": project.name,
-                "source": project.source,
-                "category": project.category,
-                "description": project.description,
-                "topics": project.topics[:3],
-            }
-            for project in projects
-        ]
-        system = "你是一名双语 AI 产品分析师。请把项目摘要和分类转成自然中文，只返回 JSON。"
-        user = (
-            '返回 JSON：{"items":[{"name":"","name_zh":"","summary_zh":"","why_cn":"","category_zh":""}]}\n'
-            f"项目列表：{payload}"
-        )
-        try:
-            response = await asyncio.wait_for(
-                self.ai_client.complete(system=system, user=user, max_tokens=2600),
-                timeout=45,
-            )
-            result = parse_json_response(response) or {}
-        except Exception:
-            result = {}
-
-        localized_map = {str(item.get("name")): item for item in result.get("items", []) if item.get("name")}
         zh_to_en = {value: key for key, value in AI_CATEGORY_ZH.items()}
-        for project in projects:
-            item = localized_map.get(project.name, {})
-            project.name_zh = str(item.get("name_zh") or "").strip() or None
-            project.summary_zh = str(item.get("summary_zh") or "").strip() or project.description
-            project.why_cn = str(item.get("why_cn") or "").strip() or None
-            category_zh = str(item.get("category_zh") or "").strip()
-            if category_zh:
-                project.category = zh_to_en.get(category_zh, project.category)
+        for start in range(0, len(projects), 8):
+            batch = projects[start:start + 8]
+            payload = [
+                {
+                    "name": project.name,
+                    "source": project.source,
+                    "category": project.category,
+                    "description": project.description,
+                    "topics": [AI_TOPIC_ZH.get(topic, topic) for topic in project.topics[:3]],
+                }
+                for project in batch
+            ]
+            system = "你是一名双语 AI 产品分析师。请把项目摘要和分类转成自然中文，只返回 JSON。"
+            user = (
+                '返回 JSON：{"items":[{"name":"","name_zh":"","summary_zh":"","why_cn":"","category_zh":""}]}\n'
+                f"项目列表：{payload}"
+            )
+            try:
+                response = await asyncio.wait_for(
+                    self.ai_client.complete(system=system, user=user, max_tokens=2600),
+                    timeout=45,
+                )
+                result = parse_json_response(response) or {}
+            except Exception:
+                result = {}
+
+            localized_map = {str(item.get("name")): item for item in result.get("items", []) if item.get("name")}
+            for project in batch:
+                item = localized_map.get(project.name, {})
+                project.name_zh = str(item.get("name_zh") or "").strip() or None
+                project.summary_zh = str(item.get("summary_zh") or "").strip() or project.description
+                project.why_cn = str(item.get("why_cn") or "").strip() or None
+                category_zh = str(item.get("category_zh") or "").strip()
+                if category_zh:
+                    project.category = zh_to_en.get(category_zh, project.category)
 
     @staticmethod
     def _infer_topics_from_repo(text: str) -> list[str]:

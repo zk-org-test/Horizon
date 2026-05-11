@@ -147,6 +147,7 @@ class MarketMover:
     company_intro: Optional[str] = None
     main_products: Optional[str] = None
     move_reason: Optional[str] = None
+    business_summary: Optional[str] = None
 
     @property
     def display_name(self) -> str:
@@ -426,8 +427,16 @@ class FinanceDigestRunner:
             mover.catalyst = self._pick_catalyst(headlines[:3])
             return
 
-        mover.sector = self._infer_sector_from_name(mover.name)
-        mover.industry = self._infer_industry_from_name(mover.name, mover.sector)
+        profile = await asyncio.to_thread(self._fetch_yahoo_profile, mover.symbol)
+        if profile:
+            mover.name = str(profile.get("shortName") or profile.get("longName") or mover.name)
+            mover.sector = str(profile.get("sector") or mover.sector)
+            mover.industry = str(profile.get("industry") or mover.industry)
+            mover.business_summary = str(profile.get("longBusinessSummary") or "").strip() or None
+        if not mover.sector or mover.sector == "未分类":
+            mover.sector = self._infer_sector_from_name(mover.name)
+        if not mover.industry or mover.industry == "未分类":
+            mover.industry = self._infer_industry_from_name(mover.name, mover.sector)
         mover.sector_zh = self._translate_sector(mover.sector)
         mover.industry_zh = self._translate_industry(mover.industry, mover.sector_zh)
         mover.news_headlines = []
@@ -437,49 +446,52 @@ class FinanceDigestRunner:
         if not movers:
             return
 
-        payload = [
-            {
-                "symbol": mover.symbol,
-                "market": mover.market,
-                "name_en": mover.name,
-                "sector_hint": mover.sector,
-                "industry_hint": mover.industry,
-                "catalyst_hint": mover.catalyst,
-                "headline_hints": mover.news_headlines or [],
-            }
-            for mover in movers
-        ]
-        system = (
-            "你是一名中英双语金融研究员。请根据股票英文名和提示，为每只股票补充常用中文名、"
-            "中文一级分类、中文二级分类、公司一句话介绍、主要产品/业务、以及昨日上涨原因。"
-            "输出严格 JSON，不要解释。尽量不要返回“未分类”。"
-        )
-        user = (
-            '返回 JSON：{"items":[{"symbol":"", "name_zh":"", "sector_zh":"", "industry_zh":"", '
-            '"company_intro":"", "main_products":"", "move_reason":""}]}\n'
-            f"股票列表：{payload}"
-        )
-        try:
-            response = await asyncio.wait_for(
-                self.ai_client.complete(system=system, user=user, max_tokens=2200),
-                timeout=45,
+        for start in range(0, len(movers), 8):
+            batch = movers[start:start + 8]
+            payload = [
+                {
+                    "symbol": mover.symbol,
+                    "market": mover.market,
+                    "name_en": mover.name,
+                    "sector_hint": mover.sector,
+                    "industry_hint": mover.industry,
+                    "catalyst_hint": mover.catalyst,
+                    "headline_hints": mover.news_headlines or [],
+                    "business_summary": (mover.business_summary or "")[:1200],
+                }
+                for mover in batch
+            ]
+            system = (
+                "你是一名中英双语金融研究员。请根据股票英文名和提示，为每只股票补充常用中文名、"
+                "中文一级分类、中文二级分类、公司一句话介绍、主要产品/业务、以及昨日上涨原因。"
+                "输出严格 JSON，不要解释。尽量不要返回“未分类”。"
             )
-            result = parse_json_response(response) or {}
-        except Exception:
-            result = {}
+            user = (
+                '返回 JSON：{"items":[{"symbol":"", "name_zh":"", "sector_zh":"", "industry_zh":"", '
+                '"company_intro":"", "main_products":"", "move_reason":""}]}\n'
+                f"股票列表：{payload}"
+            )
+            try:
+                response = await asyncio.wait_for(
+                    self.ai_client.complete(system=system, user=user, max_tokens=2200),
+                    timeout=45,
+                )
+                result = parse_json_response(response) or {}
+            except Exception:
+                result = {}
 
-        enriched_map = {str(item.get("symbol")): item for item in result.get("items", []) if item.get("symbol")}
-        for mover in movers:
-            item = enriched_map.get(mover.symbol, {})
-            mover.name_zh = str(item.get("name_zh") or mover.name_zh or "")
-            mover.sector_zh = self._translate_sector(str(item.get("sector_zh") or mover.sector_zh or mover.sector))
-            mover.industry_zh = self._translate_industry(
-                str(item.get("industry_zh") or mover.industry_zh or mover.industry),
-                mover.sector_zh,
-            )
-            mover.company_intro = str(item.get("company_intro") or mover.company_intro or "").strip() or None
-            mover.main_products = str(item.get("main_products") or mover.main_products or "").strip() or None
-            mover.move_reason = str(item.get("move_reason") or mover.move_reason or "").strip() or None
+            enriched_map = {str(item.get("symbol")): item for item in result.get("items", []) if item.get("symbol")}
+            for mover in batch:
+                item = enriched_map.get(mover.symbol, {})
+                mover.name_zh = str(item.get("name_zh") or mover.name_zh or "")
+                mover.sector_zh = self._translate_sector(str(item.get("sector_zh") or mover.sector_zh or mover.sector))
+                mover.industry_zh = self._translate_industry(
+                    str(item.get("industry_zh") or mover.industry_zh or mover.industry),
+                    mover.sector_zh,
+                )
+                mover.company_intro = str(item.get("company_intro") or mover.company_intro or "").strip() or None
+                mover.main_products = str(item.get("main_products") or mover.main_products or "").strip() or None
+                mover.move_reason = str(item.get("move_reason") or mover.move_reason or "").strip() or None
 
     async def _generate_ai_insights(
         self,
@@ -654,6 +666,15 @@ class FinanceDigestRunner:
             "main_products": mover.main_products,
             "move_reason": mover.move_reason,
         }
+
+    @staticmethod
+    def _fetch_yahoo_profile(symbol: str) -> dict[str, Any]:
+        if yf is None:
+            return {}
+        try:
+            return yf.Ticker(symbol).info or {}
+        except Exception:
+            return {}
 
     @staticmethod
     def _safe_int(value: Any) -> Optional[int]:
