@@ -297,11 +297,11 @@ class MarketMover:
             fallback="偏事件驱动，持续性还要看次日量能与跟风。",
         )
         return (
-            f"{rank}. {self.linked_symbol} {self.display_name} | {self.change_pct:+.2f}% | {subcategory}"
-            f"<br>主营：{intro}"
-            f"<br>核心产品：{products}"
-            f"<br>催化：{reason}"
-            f"<br>判断：{judgment}"
+            f"{rank}. {self.linked_symbol} {self.display_name} | {self.change_pct:+.2f}% | {subcategory}\n"
+            f"   - 主营：{intro}\n"
+            f"   - 核心产品：{products}\n"
+            f"   - 催化：{reason}\n"
+            f"   - 判断：{judgment}"
         )
 
     @staticmethod

@@ -28,8 +28,8 @@ def test_finance_summarizer_renders_required_sections():
                     {
                         "heading": "科技（2家｜平均 +7.15%｜龙头 NVDA）",
                         "items": [
-                            "1. [`NVDA`](https://finance.yahoo.com/quote/NVDA) NVIDIA（英伟达） | +8.20% | 半导体\n   主营：全球领先的 AI 芯片公司。\n   核心产品：GPU、AI 加速卡。\n   催化：财报与资本开支指引超预期。\n   判断：更像基本面兑现，不只是题材炒作。",
-                            "2. [`AMD`](https://finance.yahoo.com/quote/AMD) AMD（超威半导体） | +5.20% | 半导体\n   主营：高性能 CPU/GPU 供应商。\n   核心产品：数据中心 GPU、服务器 CPU。\n   催化：算力链预期继续走强。\n   判断：行业景气仍强，关注后续订单验证。",
+                            "1. [`NVDA`](https://finance.yahoo.com/quote/NVDA) NVIDIA（英伟达） | +8.20% | 半导体\n   - 主营：全球领先的 AI 芯片公司。\n   - 核心产品：GPU、AI 加速卡。\n   - 催化：财报与资本开支指引超预期。\n   - 判断：更像基本面兑现，不只是题材炒作。",
+                            "2. [`AMD`](https://finance.yahoo.com/quote/AMD) AMD（超威半导体） | +5.20% | 半导体\n   - 主营：高性能 CPU/GPU 供应商。\n   - 核心产品：数据中心 GPU、服务器 CPU。\n   - 催化：算力链预期继续走强。\n   - 判断：行业景气仍强，关注后续订单验证。",
                         ],
                     }
                 ],
@@ -40,7 +40,7 @@ def test_finance_summarizer_renders_required_sections():
                     {
                         "heading": "通信服务（1家｜平均 +6.10%｜龙头 0700.HK）",
                         "items": [
-                            "1. [`0700.HK`](https://finance.yahoo.com/quote/0700.HK) Tencent（腾讯） | +6.10% | 互联网平台\n   主营：中国头部互联网平台。\n   核心产品：微信、游戏、云服务。\n   催化：游戏与广告预期改善。\n   判断：基本面修复逻辑增强。",
+                            "1. [`0700.HK`](https://finance.yahoo.com/quote/0700.HK) Tencent（腾讯） | +6.10% | 互联网平台\n   - 主营：中国头部互联网平台。\n   - 核心产品：微信、游戏、云服务。\n   - 催化：游戏与广告预期改善。\n   - 判断：基本面修复逻辑增强。",
                         ],
                     }
                 ],
@@ -86,13 +86,13 @@ def test_ai_summarizer_renders_required_sections():
             {
                 "heading": "智能体（8个项目｜GitHub 5｜PH 3）",
                 "items": [
-                    "1. [org/repo-a](https://github.com/org/repo-a) | GitHub #1\n   项目定位：多代理任务编排框架。\n   核心能力：浏览器自动化、工作流自动化。\n   看点：工程化完成度明显提升。\n   判断：代表智能体工程化继续升温。",
+                    "1. [org/repo-a](https://github.com/org/repo-a) | GitHub #1\n   - 项目定位：多代理任务编排框架。\n   - 核心能力：浏览器自动化、工作流自动化。\n   - 看点：工程化完成度明显提升。\n   - 判断：代表智能体工程化继续升温。",
                 ],
             },
             {
                 "heading": "开发工具（5个项目｜GitHub 2｜PH 3）",
                 "items": [
-                    "1. [Product A](https://producthunt.com/posts/a) | Product Hunt #2\n   项目定位：把模型调用封装成开发工具。\n   核心能力：开发工具、效率办公。\n   看点：产品化方向清晰。\n   判断：更适合工具链落地场景。",
+                    "1. [Product A](https://producthunt.com/posts/a) | Product Hunt #2\n   - 项目定位：把模型调用封装成开发工具。\n   - 核心能力：开发工具、效率办公。\n   - 看点：产品化方向清晰。\n   - 判断：更适合工具链落地场景。",
                 ],
             },
         ],

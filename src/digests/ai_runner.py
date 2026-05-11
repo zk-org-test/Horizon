@@ -131,11 +131,11 @@ class AIProject:
         why = self._compact_text(self.why_cn, 50, fallback=f"{display_name} 近期热度较高。")
         judgment = self._compact_text(self.judgment_cn, 40, fallback=f"代表{self.category_zh}方向继续升温。")
         return (
-            f"{rank}. [{display_name}]({self.url}) | {source_text} #{self.rank}"
-            f"<br>项目定位：{summary}"
-            f"<br>核心能力：{capability}"
-            f"<br>看点：{why}"
-            f"<br>判断：{judgment}"
+            f"{rank}. [{display_name}]({self.url}) | {source_text} #{self.rank}\n"
+            f"   - 项目定位：{summary}\n"
+            f"   - 核心能力：{capability}\n"
+            f"   - 看点：{why}\n"
+            f"   - 判断：{judgment}"
         )
 
     @property
