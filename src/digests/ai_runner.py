@@ -132,7 +132,7 @@ class AIDigestRunner:
         posted_before = current.replace(hour=0, minute=0, second=0, microsecond=0)
         query = """
         query Posts($first: Int!, $postedAfter: DateTime, $postedBefore: DateTime) {
-          posts(first: $first, order: VOTES_COUNT, postedAfter: $postedAfter, postedBefore: $postedBefore) {
+          posts(first: $first, order: RANKING, postedAfter: $postedAfter, postedBefore: $postedBefore) {
             edges {
               node {
                 name
@@ -152,27 +152,44 @@ class AIDigestRunner:
           }
         }
         """
-        response = await self.http_client.post(
-            "https://api.producthunt.com/v2/api/graphql",
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json",
+        edges = await self._query_product_hunt_edges(
+            token,
+            query,
+            {
+                "first": self.config.top_n,
+                "postedAfter": posted_after.isoformat(),
+                "postedBefore": posted_before.isoformat(),
             },
-            json={
-                "query": query,
-                "variables": {
-                    "first": self.config.top_n,
-                    "postedAfter": posted_after.isoformat(),
-                    "postedBefore": posted_before.isoformat(),
-                },
-            },
-            timeout=30.0,
         )
-        if response.status_code != 200:
-            return []
+        if not edges:
+            fallback_query = """
+            query Posts($first: Int!) {
+              posts(first: $first, order: RANKING) {
+                edges {
+                  node {
+                    name
+                    tagline
+                    description
+                    url
+                    votesCount
+                    topics {
+                      edges {
+                        node {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """
+            edges = await self._query_product_hunt_edges(
+                token,
+                fallback_query,
+                {"first": self.config.top_n},
+            )
 
-        payload = response.json()
-        edges = (((payload.get("data") or {}).get("posts") or {}).get("edges")) or []
         projects: list[AIProject] = []
         for index, edge in enumerate(edges, start=1):
             node = edge.get("node") or {}
@@ -194,6 +211,30 @@ class AIDigestRunner:
             project.category = classify_ai_category(project.name, project.description, project.topics)
             projects.append(project)
         return projects
+
+    async def _query_product_hunt_edges(
+        self,
+        token: str,
+        query: str,
+        variables: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        response = await self.http_client.post(
+            "https://api.producthunt.com/v2/api/graphql",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "query": query,
+                "variables": variables,
+            },
+            timeout=30.0,
+        )
+        if response.status_code != 200:
+            return []
+
+        payload = response.json()
+        return (((payload.get("data") or {}).get("posts") or {}).get("edges")) or []
 
     async def _fetch_product_hunt_feed(self) -> list[AIProject]:
         feed_url = self._find_feed_url(self.config.product_hunt_feed_name)
